@@ -57,8 +57,12 @@ CREATE TABLE goal_entries (
 );
 )sql";
 
+constexpr const char* kSchemaV3 = R"sql(
+ALTER TABLE goals ADD COLUMN symbol TEXT NOT NULL DEFAULT '';
+)sql";
+
 // kSteps[i] upgrades from version i to version i + 1.
-constexpr const char* kSteps[] = {kSchemaV1, kSchemaV2};
+constexpr const char* kSteps[] = {kSchemaV1, kSchemaV2, kSchemaV3};
 static_assert(std::size(kSteps) == kSchemaVersion);
 
 } // namespace

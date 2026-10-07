@@ -64,6 +64,18 @@ TEST_CASE("update and soft delete") {
     CHECK(scalar(db, "SELECT deleted FROM goals WHERE id = ?", g.id) == 1);
 }
 
+TEST_CASE("goal symbol is stored and updated") {
+    Database db(":memory:");
+    GoalRepository repo(db);
+    auto g = make_goal("Gym", 2026y / October / 5d, kMwf);
+    g.symbol = "💪";
+    repo.insert(g);
+    CHECK(repo.find(g.id)->symbol == "💪");
+    g.symbol = "📚4h";
+    repo.update(g);
+    CHECK(repo.find(g.id)->symbol == "📚4h");
+}
+
 TEST_CASE("set_status upserts one row per day") {
     Database db(":memory:");
     GoalRepository repo(db);

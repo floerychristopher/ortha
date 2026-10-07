@@ -5,7 +5,8 @@
 namespace ortha {
 
 // Version 1: tasks, tags, subtasks. Version 2: goals and their daily entries.
-inline constexpr int kSchemaVersion = 2;
+// Version 3: goal symbols.
+inline constexpr int kSchemaVersion = 3;
 
 // Brings the database schema up to `target` (default: the newest). Safe to call repeatedly.
 // Throws SqliteError if the database was created by a newer version of ortha.

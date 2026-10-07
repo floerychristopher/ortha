@@ -8,7 +8,8 @@ namespace ortha {
 namespace {
 
 constexpr const char* kSelectGoal =
-    "SELECT id, title, weekdays, start_date, created_at, updated_at FROM goals WHERE deleted = 0";
+    "SELECT id, title, weekdays, start_date, created_at, updated_at, symbol FROM goals "
+    "WHERE deleted = 0";
 
 std::int64_t to_mask(const Weekdays& days) {
     std::int64_t mask = 0;
@@ -52,6 +53,7 @@ Goal read_goal(const Statement& stmt) {
     g.start = from_iso(stmt.column_text(3)).value_or(Date{});
     g.created_at = stmt.column_text(4);
     g.updated_at = stmt.column_text(5);
+    g.symbol = stmt.column_text(6);
     return g;
 }
 
@@ -63,24 +65,26 @@ void GoalRepository::insert(Goal& goal) {
     if (goal.id.empty())
         goal.id = make_uuid();
     goal.created_at = goal.updated_at = now_utc_iso();
-    db_.prepare("INSERT INTO goals (id, title, weekdays, start_date, created_at, updated_at) "
-                "VALUES (?, ?, ?, ?, ?, ?)")
+    db_.prepare("INSERT INTO goals (id, title, weekdays, start_date, created_at, updated_at, "
+                "symbol) VALUES (?, ?, ?, ?, ?, ?, ?)")
         .bind(1, goal.id)
         .bind(2, goal.title)
         .bind(3, to_mask(goal.weekdays))
         .bind(4, to_iso(goal.start))
         .bind(5, goal.created_at)
         .bind(6, goal.updated_at)
+        .bind(7, goal.symbol)
         .step();
 }
 
 void GoalRepository::update(Goal& goal) {
     goal.updated_at = now_utc_iso();
-    db_.prepare("UPDATE goals SET title = ?, weekdays = ?, updated_at = ? WHERE id = ?")
+    db_.prepare("UPDATE goals SET title = ?, symbol = ?, weekdays = ?, updated_at = ? WHERE id = ?")
         .bind(1, goal.title)
-        .bind(2, to_mask(goal.weekdays))
-        .bind(3, goal.updated_at)
-        .bind(4, goal.id)
+        .bind(2, goal.symbol)
+        .bind(3, to_mask(goal.weekdays))
+        .bind(4, goal.updated_at)
+        .bind(5, goal.id)
         .step();
 }
 

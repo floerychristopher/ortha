@@ -25,7 +25,7 @@ class GoalRepository {
 
     // Assigns id (if empty), created_at and updated_at. `goal.start` must be set.
     void insert(Goal& goal);
-    // Saves title and weekdays; bumps updated_at.
+    // Saves title, symbol and weekdays; bumps updated_at.
     void update(Goal& goal);
     // Soft delete: the goal disappears everywhere, its history stays in the database.
     void remove(const std::string& id);

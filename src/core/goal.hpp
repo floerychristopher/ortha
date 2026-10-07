@@ -19,6 +19,7 @@ using Weekdays = std::array<bool, 7>; // Monday..Sunday
 struct Goal {
     std::string id; // UUID, assigned on insert
     std::string title;
+    std::string symbol; // short column label (emoji or letters); empty = none
     Weekdays weekdays{true, true, true, true, true, true, true};
     Date start; // local date the goal was created; earlier days never count
     std::string created_at;

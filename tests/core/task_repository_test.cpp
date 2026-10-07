@@ -158,7 +158,7 @@ TEST_CASE("migration is idempotent") {
     }
     TaskRepository again(db);
     CHECK(titles(again.all(false)) == std::vector<std::string>{"Persisted"});
-    CHECK(db.user_version() == 2);
+    CHECK(db.user_version() == 3);
 }
 
 TEST_CASE("rejects database from newer version") {
