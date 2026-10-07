@@ -23,6 +23,17 @@ TEST_CASE("task list renders tasks and dates") {
     }
 }
 
+TEST_CASE("task list says today and tomorrow instead of the date") {
+    std::vector<Task> tasks{make_task("Due today", Date{2026y, October, 7d}),
+                            make_task("Due tomorrow", Date{2026y, October, 8d})};
+    auto out = render(
+        make_task_list("All Tasks", [&](bool) { return tasks; }, Date{2026y, October, 7d}, {}));
+    CHECK(contains(line_with(out, "Due today"), "today"));
+    CHECK(contains(line_with(out, "Due tomorrow"), "tomorrow"));
+    CHECK_FALSE(contains(out, "07.10.2026"));
+    CHECK_FALSE(contains(out, "08.10.2026"));
+}
+
 TEST_CASE("done tasks are marked") {
     auto t = make_task("Finished");
     t.done = true;

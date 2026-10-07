@@ -61,6 +61,15 @@ std::string format_date(Date d) {
                        static_cast<unsigned>(d.month()), static_cast<int>(d.year()));
 }
 
+std::string due_label(Date due, Date today) {
+    const auto days = (std::chrono::sys_days{due} - std::chrono::sys_days{today}).count();
+    if (days == 0)
+        return "today";
+    if (days == 1)
+        return "tomorrow";
+    return format_date(due);
+}
+
 std::string to_iso(Date d) {
     return std::format("{:04}-{:02}-{:02}", static_cast<int>(d.year()),
                        static_cast<unsigned>(d.month()), static_cast<unsigned>(d.day()));

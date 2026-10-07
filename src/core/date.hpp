@@ -25,6 +25,9 @@ std::string weekday_name(Date d);
 // "05.03.2026" - the format shown to the user.
 std::string format_date(Date d);
 
+// How a due date is shown in task lists: "today", "tomorrow" or the date.
+std::string due_label(Date due, Date today);
+
 // "2026-03-05" - the format stored in the database.
 std::string to_iso(Date d);
 std::optional<Date> from_iso(std::string_view text);

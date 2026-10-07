@@ -46,7 +46,7 @@ Element task_row(const Task& task, Date today, bool focused, bool selected) {
     for (const auto& tag : task.tags)
         parts.push_back(text(" #" + tag) | color(Color::Cyan));
     if (task.due) {
-        auto date = text("  " + format_date(*task.due));
+        auto date = text("  " + due_label(*task.due, today));
         if (!task.done && *task.due < today)
             date |= color(Color::Red);
         else if (!task.done && *task.due == today)

@@ -42,3 +42,12 @@ TEST_CASE("weekday_name") {
     CHECK(std::string(kWeekdayNames[0]) == "Mo");
     CHECK(std::string(kWeekdayNames[6]) == "Su");
 }
+
+TEST_CASE("due_label says today and tomorrow, otherwise the date") {
+    const Date today = 2026y / October / 7d;
+    CHECK(due_label(today, today) == "today");
+    CHECK(due_label(2026y / October / 8d, today) == "tomorrow");
+    CHECK(due_label(2026y / October / 9d, today) == "09.10.2026");
+    CHECK(due_label(2026y / October / 6d, today) == "06.10.2026"); // overdue keeps the date
+    CHECK(due_label(2026y / November / 1d, 2026y / October / 31d) == "tomorrow");
+}
