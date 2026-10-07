@@ -1,6 +1,7 @@
 #include "tui/goal_form.hpp"
 
 #include "core/text.hpp"
+#include "tui/goal_widgets.hpp"
 
 #include <ftxui/component/component_options.hpp>
 #include <ftxui/component/event.hpp>
@@ -13,7 +14,9 @@ namespace ortha {
 
 using namespace ftxui;
 
-GoalFormState goal_form_state_from(const Goal& goal) { return {goal.title, goal.weekdays}; }
+GoalFormState goal_form_state_from(const Goal& goal) {
+    return {goal.title, goal.weekdays, goal.symbol};
+}
 
 std::variant<Goal, std::string> apply_goal_form(const GoalFormState& state, Goal base) {
     auto title = trim(state.title);
@@ -21,7 +24,11 @@ std::variant<Goal, std::string> apply_goal_form(const GoalFormState& state, Goal
         return std::string("Title must not be empty");
     if (std::none_of(state.weekdays.begin(), state.weekdays.end(), [](bool d) { return d; }))
         return std::string("Choose at least one day");
+    auto symbol = trim(state.symbol);
+    if (ftxui::string_width(symbol) > kMaxSymbolWidth)
+        return std::string("Symbol is too wide (max. 2 emoji or 4 characters)");
     base.title = std::move(title);
+    base.symbol = std::move(symbol);
     base.weekdays = state.weekdays;
     return base;
 }
@@ -33,11 +40,13 @@ Component make_goal_form(std::string heading, Goal initial, std::function<void(G
         GoalFormState form;
         std::string error;
         int title_cursor = 0;
+        int symbol_cursor = 0;
     };
     auto model = std::make_shared<Model>();
     model->form = goal_form_state_from(initial);
     model->base = std::move(initial);
     model->title_cursor = static_cast<int>(model->form.title.size());
+    model->symbol_cursor = static_cast<int>(model->form.symbol.size());
 
     auto save = [model, on_save] {
         auto result = apply_goal_form(model->form, model->base);
@@ -57,6 +66,14 @@ Component make_goal_form(std::string heading, Goal initial, std::function<void(G
     title_option.on_enter = save;
     auto title = Input(title_option);
 
+    auto symbol_option = InputOption::Default();
+    symbol_option.content = &model->form.symbol;
+    symbol_option.placeholder = "e.g. 💪";
+    symbol_option.multiline = false;
+    symbol_option.cursor_position = &model->symbol_cursor;
+    symbol_option.on_enter = save;
+    auto symbol = Input(symbol_option);
+
     static constexpr const char* kDayNames[] = {"Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"};
     Components day_boxes;
     for (std::size_t i = 0; i < 7; ++i)
@@ -67,6 +84,7 @@ Component make_goal_form(std::string heading, Goal initial, std::function<void(G
     auto cancel_button = Button("Cancel", on_cancel, ButtonOption::Ascii());
     auto layout = Container::Vertical({
         title,
+        symbol,
         days,
         Container::Horizontal({save_button, cancel_button}),
     });
@@ -79,6 +97,7 @@ Component make_goal_form(std::string heading, Goal initial, std::function<void(G
         }
         Elements rows = {
             hbox({text("Title") | size(WIDTH, EQUAL, 10), title->Render() | flex}),
+            hbox({text("Symbol") | size(WIDTH, EQUAL, 10), symbol->Render() | flex}),
             hbox({text("Days") | size(WIDTH, EQUAL, 10), hbox(std::move(boxes))}),
             separator(),
             hbox({save_button->Render(), text("  "), cancel_button->Render()}),

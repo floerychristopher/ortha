@@ -14,6 +14,7 @@ namespace ortha {
 struct GoalFormState {
     std::string title;
     Weekdays weekdays{true, true, true, true, true, true, true};
+    std::string symbol;
 };
 
 GoalFormState goal_form_state_from(const Goal& goal);

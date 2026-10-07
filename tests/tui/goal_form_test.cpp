@@ -21,7 +21,7 @@ TEST_CASE("apply_goal_form keeps identity and trims") {
     base.id = "g1";
     base.start = 2026y / October / 1d;
     base.created_at = "2026-10-01T00:00:00Z";
-    GoalFormState s{" Gym ", {true, false, true, false, true, false, false}};
+    GoalFormState s{" Gym ", {true, false, true, false, true, false, false}, ""};
     auto g = std::get<Goal>(apply_goal_form(s, base));
     CHECK(g.id == "g1");
     CHECK(g.start == Date{2026y, October, 1d});
@@ -30,12 +30,32 @@ TEST_CASE("apply_goal_form keeps identity and trims") {
     CHECK(g.weekdays == s.weekdays);
 }
 
+TEST_CASE("apply_goal_form checks the symbol width") {
+    GoalFormState s;
+    s.title = "Gym";
+    for (auto ok : {"", "💪", "📚💪", "GYM", "LESE", "📚4h"}) {
+        INFO(ok);
+        s.symbol = ok;
+        CHECK(std::holds_alternative<Goal>(apply_goal_form(s, Goal{})));
+    }
+    for (auto bad : {"LESEN", "📚💪🏃", "📚4h!"}) {
+        INFO(bad);
+        s.symbol = bad;
+        CHECK(std::get<std::string>(apply_goal_form(s, Goal{})) ==
+              "Symbol is too wide (max. 2 emoji or 4 characters)");
+    }
+    s.symbol = " 💪 ";
+    CHECK(std::get<Goal>(apply_goal_form(s, Goal{})).symbol == "💪");
+}
+
 TEST_CASE("goal_form_state_from copies the goal") {
     Goal g;
     g.title = "Read";
+    g.symbol = "📚";
     g.weekdays = {false, false, false, false, false, true, true};
     auto s = goal_form_state_from(g);
     CHECK(s.title == "Read");
+    CHECK(s.symbol == "📚");
     CHECK(s.weekdays == g.weekdays);
 }
 
@@ -43,7 +63,7 @@ TEST_CASE("goal form renders and saves on enter") {
     std::optional<Goal> saved;
     auto form = make_goal_form("New goal", Goal{}, [&](Goal g) { saved = g; }, [] {});
     auto out = render(form);
-    for (auto s : {"New goal", "Title", "Days", "Mo", "Su", "Save", "Cancel"}) {
+    for (auto s : {"New goal", "Title", "Symbol", "Days", "Mo", "Su", "Save", "Cancel"}) {
         INFO(s);
         CHECK(contains(out, s));
     }
@@ -62,4 +82,17 @@ TEST_CASE("goal form shows validation errors and cancels on escape") {
     CHECK(contains(render(form), "Title must not be empty"));
     form->OnEvent(ftxui::Event::Escape);
     CHECK(cancelled);
+}
+
+TEST_CASE("goal form saves the symbol on enter") {
+    std::optional<Goal> saved;
+    Goal initial;
+    initial.title = "Gym";
+    auto form = make_goal_form("Edit goal", initial, [&](Goal g) { saved = g; }, [] {});
+    form->OnEvent(ftxui::Event::Tab); // Title -> Symbol
+    form->OnEvent(ftxui::Event::Character("💪"));
+    form->OnEvent(ftxui::Event::Return);
+    REQUIRE(saved);
+    CHECK(saved->title == "Gym");
+    CHECK(saved->symbol == "💪");
 }
