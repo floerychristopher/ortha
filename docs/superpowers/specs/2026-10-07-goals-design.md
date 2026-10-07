@@ -2,7 +2,7 @@
 
 ## Kontext
 
-Neben konkreten Tasks („Mathe Hausübung machen“) will der Nutzer **Tagesziele** im Stil eines Habit-Trackers: „Ins Gym gehen“, „4h lernen“. Ein Ziel gilt an bestimmten Wochentagen jeweils neu; am Abend wird bewertet, ob es geschafft wurde. Ziele sind eine **eigene Art von Eintrag** – sie erscheinen nicht in All Tasks und belegen keine Today-Task-Plätze.
+Neben konkreten Tasks („Mathe Hausübung machen“) will der Nutzer **Tagesziele** im Stil eines Habit-Trackers: „Ins Gym gehen“, „4h lernen“. Ein Ziel gilt an bestimmten Wochentagen jeweils neu; am Abend wird bewertet, ob es geschafft wurde. Ziele sind eine **eigene Art von Eintrag** – sie erscheinen nicht in All tasks und belegen keine Today-Task-Plätze.
 
 ### Anforderungen (vom Nutzer festgelegt)
 - Tagesziele (keine Meilensteine), Habit-Tracker-Prinzip: pro Tag „geschafft“ / „nicht geschafft“
@@ -45,7 +45,7 @@ Abschnitt **Goals** über den Tasks, nur wenn heute mindestens ein Ziel geplant 
 │ ...                                         │
 ├─────────────────────────────────────────────┤
 │ > New task                                  │
-│   All Tasks (12)                            │
+│   All tasks (12)                            │
 │   Goals                                     │
 │   Quit                                      │
 ╰─────────────────────────────────────────────╯
@@ -53,7 +53,7 @@ Abschnitt **Goals** über den Tasks, nur wenn heute mindestens ein Ziel geplant 
 - Zeile: Status `[ ]` / `[✓]` (grün) / `[✗]` (rot), Titel, rechts `🔥 N` (nur wenn N > 0).
 - Reihenfolge: nach Anlagezeit.
 - Enter auf einem Ziel wechselt den heutigen Status; der Streak aktualisiert sich sofort.
-- Menü: `New task`, `All Tasks (N)`, `Goals`, `Quit`; der Fokus startet weiterhin auf `New task`.
+- Menü: `New task`, `All tasks (N)`, `Goals`, `Quit`; der Fokus startet weiterhin auf `New task`.
 
 ### Goals-Ansicht (Menüpunkt „Goals“)
 ```
@@ -67,7 +67,7 @@ Abschnitt **Goals** über den Tasks, nur wenn heute mindestens ein Ziel geplant 
 (Beispiel für heute = Mittwoch 07.10.: Gym heute ✗ → kein Streak; „4h lernen“ heute noch offen, davor 3× ✓ → 🔥 3.)
 - Pro Ziel: Titel, Tage (`daily` oder Kürzel `Mo Tu We Th Fr Sa Su`), Leiste der letzten 7 Tage (älteste links, heute rechts: `✓` done, `✗` missed, `○` offen, `·` nicht geplant), Streak.
 - Enter auf Ziel → Popup `History` / `Edit` / `Delete` / `Cancel`; Delete mit Bestätigung `Delete "<title>"?`.
-- `New goal` → Zielformular. Esc / Back → Today. Ohne Ziele: „No goals yet.“
+- `New goal` → Zielformular. Esc / Back → Today. Ohne Ziele: „no goals yet.“
 
 ### History (pro Ziel)
 - Liste aller geplanten Tage vom Anlagedatum bis heute, **neueste oben**: `We 07.10.2026  [✓]`.

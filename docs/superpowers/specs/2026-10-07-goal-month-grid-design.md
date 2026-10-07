@@ -58,7 +58,7 @@ Monatsstatistiken (Quote, Summen pro Spalte/Zeile), Wochen- oder Jahresansicht, 
 - **Start**: aktueller Monat, Cursor auf heute in der ersten Spalte.
 - **Fußzeile**: erste Zeile voller Titel + Datum der Cursor-Zelle (`📚 4h lernen · We 07.10.2026`), zweite Zeile Legende aller Kürzel (`<Kürzel> <Titel>`), bricht bei Bedarf um.
 - **Scrollen**: passt das Raster nicht ins Terminal, scrollt es senkrecht und waagrecht mit dem Cursor mit.
-- **Ohne Ziele**: „No goals yet.“
+- **Ohne Ziele**: „no goals yet.“
 
 ### Goals-Ansicht
 - Toolbar: `Back  New goal  Month`.
@@ -118,5 +118,5 @@ src/tui/
 ## Verifikation
 
 - **Unit-Tests core**: Migration v2-Datenbank → v3 (Ziele und Einträge erhalten, `symbol` leer); Repository speichert/lädt `symbol` (insert, update); `days_of_month` (31/30 Tage, Februar mit und ohne Schaltjahr); `month_cell` (Zukunft, vor Anlagedatum, nicht gewählter Wochentag, open/done/missed).
-- **Unit-Tests tui**: Formular (2 Emojis ok, 4 Buchstaben ok, Emoji + 2 Buchstaben ok, leer ok, 5 Buchstaben bzw. 3 Emojis → Fehler, Ränder getrimmt); `goal_symbol` (Kürzel bzw. Ersatz aus Titel, kurzer Titel); Monatsraster (Kopf mit Kürzeln, Zellsymbole, Enter wechselt Status, Enter auf `·`/Zukunft ruft nichts auf, PgUp/PgDn wechselt Monat, Fußzeile mit Titel/Datum und Legende, „No goals yet.“); Goals-Ansicht zeigt Button `Month` und Kürzel.
+- **Unit-Tests tui**: Formular (2 Emojis ok, 4 Buchstaben ok, Emoji + 2 Buchstaben ok, leer ok, 5 Buchstaben bzw. 3 Emojis → Fehler, Ränder getrimmt); `goal_symbol` (Kürzel bzw. Ersatz aus Titel, kurzer Titel); Monatsraster (Kopf mit Kürzeln, Zellsymbole, Enter wechselt Status, Enter auf `·`/Zukunft ruft nichts auf, PgUp/PgDn wechselt Monat, Fußzeile mit Titel/Datum und Legende, „no goals yet.“); Goals-Ansicht zeigt Button `Month` und Kürzel.
 - **tmux-Durchlauf**: Ziel „Gym“ (Mo/Mi/Fr, Kürzel `💪`) und „4h lernen“ (täglich, Kürzel `📚`) anlegen; zu breites Kürzel → Fehler; Month öffnen → aktueller Monat, Cursor auf heute; Zellen abhaken und gestern nachtragen → Streak in Goals/Today stimmt; Vormonat/Folgemonat blättern; App neu starten → alles da; alte v2-DB öffnen → Ziele erhalten, Kürzel leer, Ersatzkürzel sichtbar.

@@ -5,11 +5,11 @@
 "ortha" ist eine intuitive To-Do-App für das Terminal (TUI), geschrieben in **C++**. Sie soll unter **Linux und Windows** laufen. Sync ist ein späteres Ziel; v1 bereitet das Datenmodell nur darauf vor.
 
 ### Anforderungen (vom Nutzer festgelegt)
-- Start im Terminal → **Today ist die permanente Startansicht**, darunter das Menü **New task, All Tasks (N), Quit**; alle anderen Ansichten kehren zu Today zurück (geändert 07.10.2026)
-- In "All Tasks" Tasks bearbeiten
+- Start im Terminal → **Today ist die permanente Startansicht**, darunter das Menü **New task, All tasks (N), Quit**; alle anderen Ansichten kehren zu Today zurück (geändert 07.10.2026)
+- In "All tasks" Tasks bearbeiten
 - Task-Felder: Titel, **Fälligkeitsdatum, Priorität, Notizen, Tags**
 - **Today** = immer die nächsten **3** offenen Tasks (weniger, falls es nicht so viele gibt): mit Datum zuerst, das früheste oben (überfällige markiert), bei gleichem Datum höhere Priorität zuerst; reichen die datierten nicht, wird mit Tasks ohne Datum aufgefüllt (höchste Priorität zuerst). Erledigte erscheinen nie in Today.
-- **All Tasks (N)**: N = Anzahl offener Tasks
+- **All tasks (N)**: N = Anzahl offener Tasks
 - Erledigte Tasks bleiben sichtbar (abgehakt), **ein-/ausblendbar**, wieder öffnbar
 - v1-Extras: **wiederkehrende Tasks (flexibel)** und **Unteraufgaben (einfache Checkliste, eine Ebene)**
 - Bedienung: **nur Pfeiltasten/Enter** (Esc = zurück, Tab zwischen Feldern als Ergänzung)
@@ -63,8 +63,8 @@ ortha/
 │   ├── main.cpp
 │   ├── app.hpp/.cpp                # Screen-Navigation (Menü ↔ Listen ↔ Formular)
 │   ├── main_menu.cpp
-│   ├── task_view.cpp               # Taskzeilen + Aktionsmenü, gemeinsam für Today & All Tasks
-│   ├── task_list_view.cpp          # All Tasks (Toolbar + TaskView)
+│   ├── task_view.cpp               # Taskzeilen + Aktionsmenü, gemeinsam für Today & All tasks
+│   ├── task_list_view.cpp          # All tasks (Toolbar + TaskView)
 │   ├── home_view.cpp               # Today + Menü (Startansicht)
 │   └── task_form.cpp               # New/Edit inkl. Subtasks & Wiederholung
 ├── tests/                          # test_date, test_recurrence, test_repository (":memory:"), test_service
@@ -92,8 +92,8 @@ Zeitstempel in UTC ISO-8601. Alle Queries filtern `deleted = 0`.
 
 ## TUI-Ablauf
 
-- **Today (Startansicht)**: Fenster „Today“ mit bis zu 3 Tasks, darunter Menü New task / All Tasks (N) / Quit; Fokus startet auf „New task“. Ohne Tasks: „Nothing to do.“ Enter auf Task → Aktionsmenü wie in All Tasks; danach rückt der nächste Task nach und N aktualisiert sich.
-- **All Tasks**: erste Zeile Aktionen `[Back] [Show done: off]`, darunter Liste: `[ ]/[x]`, Prioritäts-Marker (`!!!`), Titel, Datum (überfällig rot, heute gelb), Tags, Subtask-Fortschritt (`2/5`). Enter auf Task → Aktionsmenü: Toggle done / Edit / Delete / Cancel. Esc = zurück zu Today.
+- **Today (Startansicht)**: Fenster „Today“ mit bis zu 4 Tasks, darunter Menü New task / All tasks (N) / Quit; Fokus startet auf „New task“. Ohne Tasks: „nothing to do.“ Enter auf Task → Aktionsmenü wie in All tasks; danach rückt der nächste Task nach und N aktualisiert sich.
+- **All tasks**: erste Zeile Aktionen `[Back] [Show done: off]`, darunter Liste: `[ ]/[x]`, Prioritäts-Marker (`!!!`), Titel, Datum (`today`, `tomorrow` oder `12.10.2026 (Mo)`; überfällig rot, heute gelb), Tags, Subtask-Fortschritt (`2/5`), darunter eingerückt die Notes. Ohne Tasks: „nothing here.“ Enter auf Task → Aktionsmenü: Toggle done / Edit / Delete / Cancel (↑/↓ laufen am Rand herum). Esc = zurück zu Today.
 - **Task-Formular** (New & Edit): Title, Due (TT.MM.JJJJ, leer erlaubt), Priority (Toggle), Tags, Notes (mehrzeilig), Repeat (none/daily/weekly/monthly/yearly, Interval, Wochentage-Checkboxen, From due/completion), Subtasks (Liste + Feld zum Hinzufügen, Enter togglet/entfernt), Buttons Save / Cancel. Ungültige Eingaben → Fehlerzeile, kein Speichern.
 - Fehler beim Öffnen der DB → verständliche Meldung + Exit-Code ≠ 0, kein Absturz.
 
@@ -103,7 +103,7 @@ Der detaillierte Schritt-für-Schritt-Plan liegt separat unter `docs/superpowers
 
 0. **Setup**: Toolchain-Check, `git init`, CMake-Skelett, FetchContent, „Hello FTXUI“, ein Dummy-Test, CI-Workflow.
 1. **Core**: date, uuid, sqlite-Wrapper, Task-Modell, Repository + Schema – mit Tests.
-2. **TUI-Grundgerüst**: Main Menu, New task (Title/Due/Priority/Notes/Tags), All Tasks, Today.
+2. **TUI-Grundgerüst**: Main Menu, New task (Title/Due/Priority/Notes/Tags), All tasks, Today.
 3. **Bearbeiten**: Edit, Delete (bestätigt), Toggle done, Show/hide done.
 4. **Subtasks**.
 5. **Wiederholungen** (recurrence + task_service, intensiv getestet).
@@ -112,6 +112,6 @@ Der detaillierte Schritt-für-Schritt-Plan liegt separat unter `docs/superpowers
 ## Verifikation
 
 - `cmake -S . -B build -G Ninja && cmake --build build && ctest --test-dir build --output-on-failure` → alle Tests grün.
-- Manueller TUI-Durchlauf mit `ORTHA_DB=/tmp/.../test.db ./build/ortha`: Task anlegen (mit Datum heute, gestern, morgen) → Today zeigt die 3 frühesten offenen Tasks (gestern rot, heute gelb); All Tasks zeigt alle; Edit/Delete/Toggle; Show done; Subtasks abhaken; wiederkehrenden Task abhaken → Folgetask mit korrektem Datum erscheint; App neu starten → Daten persistent.
+- Manueller TUI-Durchlauf mit `ORTHA_DB=/tmp/.../test.db ./build/ortha`: Task anlegen (mit Datum heute, gestern, morgen) → Today zeigt die 3 frühesten offenen Tasks (gestern rot, heute gelb); All tasks zeigt alle; Edit/Delete/Toggle; Show done; Subtasks abhaken; wiederkehrenden Task abhaken → Folgetask mit korrektem Datum erscheint; App neu starten → Daten persistent.
 - Ungültiges Datum (`32.13.2026`) wird abgelehnt.
 - CI-Lauf auf GitHub (Linux + Windows) grün, sobald Remote verbunden ist.
