@@ -3,6 +3,8 @@ add_library(ortha_core STATIC
     uuid.cpp
     sqlite.cpp
     recurrence.cpp
+    task.cpp
+    task_repository.cpp
 )
 target_include_directories(ortha_core PUBLIC ${PROJECT_SOURCE_DIR}/src)
 target_link_libraries(ortha_core PRIVATE sqlite3)
