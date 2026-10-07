@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <chrono>
 #include <optional>
 #include <string>
@@ -13,6 +14,13 @@ using Date = std::chrono::year_month_day;
 // Parses "DD.MM.YYYY" (day and month may have one or two digits, surrounding
 // whitespace is ignored). Returns nullopt for malformed or non-existent dates.
 std::optional<Date> parse_date(std::string_view text);
+
+// Short weekday names, Monday first.
+inline constexpr std::array<const char*, 7> kWeekdayNames{"Mo", "Tu", "We", "Th",
+                                                          "Fr", "Sa", "Su"};
+
+// "We" for a Wednesday.
+std::string weekday_name(Date d);
 
 // "05.03.2026" - the format shown to the user.
 std::string format_date(Date d);

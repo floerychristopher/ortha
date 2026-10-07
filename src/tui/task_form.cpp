@@ -113,10 +113,9 @@ Component make_task_form(std::string heading, Task initial, std::function<void(T
     // Repeat: frequency toggle, then interval/weekdays/anchor only while repeating.
     auto repeat = Toggle(&model->repeats, &model->form.repeat);
     auto interval = single_line_input(&model->form.interval, &model->interval_cursor, "1", save);
-    static constexpr const char* kDayNames[] = {"Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"};
     Components day_boxes;
     for (std::size_t i = 0; i < 7; ++i)
-        day_boxes.push_back(Checkbox(kDayNames[i], &model->form.weekdays[i]));
+        day_boxes.push_back(Checkbox(kWeekdayNames[i], &model->form.weekdays[i]));
     auto weekdays = Container::Horizontal(day_boxes);
     auto anchor = Toggle(&model->anchors, &model->form.anchor);
     auto repeating = [model] { return model->form.repeat != 0; };

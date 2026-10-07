@@ -74,10 +74,9 @@ Component make_goal_form(std::string heading, Goal initial, std::function<void(G
     symbol_option.on_enter = save;
     auto symbol = Input(symbol_option);
 
-    static constexpr const char* kDayNames[] = {"Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"};
     Components day_boxes;
     for (std::size_t i = 0; i < 7; ++i)
-        day_boxes.push_back(Checkbox(kDayNames[i], &model->form.weekdays[i]));
+        day_boxes.push_back(Checkbox(kWeekdayNames[i], &model->form.weekdays[i]));
     auto days = Container::Horizontal(day_boxes);
 
     auto save_button = Button("Save", save, ButtonOption::Ascii());

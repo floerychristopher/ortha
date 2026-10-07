@@ -16,7 +16,6 @@ namespace ch = std::chrono;
 
 namespace {
 
-constexpr const char* kDayNames[] = {"Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"};
 constexpr const char* kMonthNames[] = {"January", "February", "March",     "April",
                                        "May",     "June",     "July",      "August",
                                        "September", "October", "November", "December"};
@@ -27,7 +26,7 @@ constexpr int kDayLabelWidth = 5;
 
 // "We 07"
 std::string day_label(Date day) {
-    return std::format("{} {:02}", kDayNames[weekday_index(day)],
+    return std::format("{} {:02}", weekday_name(day),
                        static_cast<unsigned>(day.day()));
 }
 
@@ -192,7 +191,7 @@ class GoalMonthView : public ComponentBase {
         const auto& goal = columns_[static_cast<std::size_t>(col_)].goal;
         const auto day = days_[static_cast<std::size_t>(row_)];
         auto cursor = text(goal_symbol(goal) + " " + goal.title + " · " +
-                           kDayNames[weekday_index(day)] + " " + format_date(day));
+                           weekday_name(day) + " " + format_date(day));
         Elements legend;
         for (const auto& column_data : columns_)
             legend.push_back(text(goal_symbol(column_data.goal) + " " + column_data.goal.title));

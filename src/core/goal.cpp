@@ -74,14 +74,13 @@ std::vector<Date> scheduled_days(const Goal& goal, Date today) {
 std::string weekdays_label(const Weekdays& days) {
     if (std::all_of(days.begin(), days.end(), [](bool d) { return d; }))
         return "daily";
-    static constexpr const char* kNames[] = {"Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"};
     std::string label;
     for (std::size_t i = 0; i < days.size(); ++i) {
         if (!days[i])
             continue;
         if (!label.empty())
             label += ' ';
-        label += kNames[i];
+        label += kWeekdayNames[i];
     }
     return label;
 }

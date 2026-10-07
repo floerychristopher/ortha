@@ -34,3 +34,11 @@ TEST_CASE("clock helpers") {
     CHECK(std::regex_match(now_utc_iso(),
                            std::regex(R"(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)")));
 }
+
+TEST_CASE("weekday_name") {
+    CHECK(weekday_name(2026y / October / 5d) == "Mo");
+    CHECK(weekday_name(2026y / October / 7d) == "We");
+    CHECK(weekday_name(2026y / October / 11d) == "Su");
+    CHECK(std::string(kWeekdayNames[0]) == "Mo");
+    CHECK(std::string(kWeekdayNames[6]) == "Su");
+}

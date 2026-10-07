@@ -16,9 +16,8 @@ using namespace ftxui;
 namespace {
 
 Element day_row(const HistoryDay& entry, bool focused, bool selected) {
-    static constexpr const char* kDayNames[] = {"Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"};
     auto row = hbox({
-        text(std::string(kDayNames[weekday_index(entry.day)]) + " " + format_date(entry.day) +
+        text(weekday_name(entry.day) + " " + format_date(entry.day) +
              "  "),
         goal_status_box(entry.status),
     });

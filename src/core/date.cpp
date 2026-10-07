@@ -51,6 +51,11 @@ std::optional<Date> parse_date(std::string_view text) {
                      parse_number(text.substr(0, first), 1, 2));
 }
 
+std::string weekday_name(Date d) {
+    const auto iso = std::chrono::weekday{std::chrono::sys_days{d}}.iso_encoding(); // 1 = Monday
+    return kWeekdayNames[iso - 1];
+}
+
 std::string format_date(Date d) {
     return std::format("{:02}.{:02}.{:04}", static_cast<unsigned>(d.day()),
                        static_cast<unsigned>(d.month()), static_cast<int>(d.year()));
