@@ -126,3 +126,26 @@ TEST_CASE("weekdays_label") {
     CHECK(weekdays_label({true, false, true, false, true, false, false}) == "Mo We Fr");
     CHECK(weekdays_label({false, false, false, false, false, true, true}) == "Sa Su");
 }
+
+TEST_CASE("days_of_month lists every day of the month") {
+    auto oct = days_of_month(2026y / October);
+    CHECK(oct.size() == 31);
+    CHECK(oct.front() == Date{2026y, October, 1d});
+    CHECK(oct.back() == Date{2026y, October, 31d});
+    CHECK(days_of_month(2026y / November).size() == 30);
+    CHECK(days_of_month(2026y / February).size() == 28);
+    CHECK(days_of_month(2028y / February).size() == 29);
+}
+
+TEST_CASE("month_cell") {
+    const Date today = 2026y / October / 7d;
+    auto g = mwf(2026y / October / 5d);
+    CHECK(month_cell(g, 2026y / October / 9d, today, GoalStatus::Done) == CellState::Future);
+    CHECK(month_cell(g, 2026y / October / 2d, today, GoalStatus::Open) ==
+          CellState::NotScheduled); // before the start date
+    CHECK(month_cell(g, 2026y / October / 6d, today, GoalStatus::Open) ==
+          CellState::NotScheduled); // Tuesday
+    CHECK(month_cell(g, today, today, GoalStatus::Open) == CellState::Open);
+    CHECK(month_cell(g, 2026y / October / 5d, today, GoalStatus::Done) == CellState::Done);
+    CHECK(month_cell(g, today, today, GoalStatus::Missed) == CellState::Missed);
+}

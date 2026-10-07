@@ -53,4 +53,14 @@ std::vector<Date> scheduled_days(const Goal& goal, Date today);
 // "daily" if every day is chosen, otherwise e.g. "Mo We Fr".
 std::string weekdays_label(const Weekdays& days);
 
+// All days of the month, first to last.
+std::vector<Date> days_of_month(std::chrono::year_month month);
+
+// What one cell of the month grid shows. Only Open, Done and Missed can be changed.
+enum class CellState { Future, NotScheduled, Open, Done, Missed };
+
+// Future if `day` is after today, NotScheduled if the goal does not apply on `day`,
+// otherwise the given status.
+CellState month_cell(const Goal& goal, Date day, Date today, GoalStatus status);
+
 } // namespace ortha

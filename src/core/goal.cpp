@@ -86,4 +86,27 @@ std::string weekdays_label(const Weekdays& days) {
     return label;
 }
 
+std::vector<Date> days_of_month(ch::year_month month) {
+    const auto last = ch::year_month_day_last{month.year(), ch::month_day_last{month.month()}};
+    std::vector<Date> days;
+    for (unsigned d = 1; d <= static_cast<unsigned>(last.day()); ++d)
+        days.push_back(month / ch::day{d});
+    return days;
+}
+
+CellState month_cell(const Goal& goal, Date day, Date today, GoalStatus status) {
+    if (day > today)
+        return CellState::Future;
+    if (!is_scheduled(goal, day))
+        return CellState::NotScheduled;
+    switch (status) {
+    case GoalStatus::Done:
+        return CellState::Done;
+    case GoalStatus::Missed:
+        return CellState::Missed;
+    default:
+        return CellState::Open;
+    }
+}
+
 } // namespace ortha
