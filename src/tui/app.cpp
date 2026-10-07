@@ -53,7 +53,7 @@ ftxui::Component App::home() {
     auto callbacks = task_callbacks([this] { show_home(); });
     callbacks.on_back = {}; // Esc on the start screen does nothing
     return make_home({
-        .load_tasks = [this] { return repo_.upcoming(3); },
+        .load_tasks = [this] { return repo_.upcoming(4); },
         .count_open = [this] { return repo_.count_open(); },
         .load_goals =
             [this] {
