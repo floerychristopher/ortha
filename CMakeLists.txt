@@ -12,6 +12,7 @@ include(cmake/ProjectOptions.cmake)
 include(cmake/Dependencies.cmake)
 
 add_subdirectory(src/core)
+add_subdirectory(src/tui)
 
 if(ORTHA_BUILD_TESTS)
     enable_testing()

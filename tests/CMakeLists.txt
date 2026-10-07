@@ -8,8 +8,10 @@ add_executable(ortha_tests
     core/task_repository_test.cpp
     core/task_service_test.cpp
     core/paths_test.cpp
+    tui/task_form_state_test.cpp
+    tui/task_form_test.cpp
 )
-target_link_libraries(ortha_tests PRIVATE ortha_core Catch2::Catch2WithMain)
+target_link_libraries(ortha_tests PRIVATE ortha_tui Catch2::Catch2WithMain)
 ortha_set_warnings(ortha_tests)
 
 catch_discover_tests(ortha_tests)
