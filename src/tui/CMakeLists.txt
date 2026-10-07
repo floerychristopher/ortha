@@ -5,6 +5,7 @@ add_library(ortha_tui STATIC
     task_list_view.cpp
     home_view.cpp
     error_guard.cpp
+    goal_form.cpp
     app.cpp
 )
 target_link_libraries(ortha_tui PUBLIC ortha_core ftxui::screen ftxui::dom ftxui::component)

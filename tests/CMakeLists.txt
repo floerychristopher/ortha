@@ -16,6 +16,7 @@ add_executable(ortha_tests
     tui/task_list_view_test.cpp
     tui/home_view_test.cpp
     tui/error_guard_test.cpp
+    tui/goal_form_test.cpp
 )
 target_link_libraries(ortha_tests PRIVATE ortha_tui Catch2::Catch2WithMain)
 ortha_set_warnings(ortha_tests)
