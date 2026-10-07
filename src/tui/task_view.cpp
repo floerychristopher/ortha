@@ -28,12 +28,16 @@ const char* priority_marker(Priority p) {
     }
 }
 
-// The non-empty lines of the notes, indented to the title and wrapped.
+// The non-empty lines of the notes, indented to the title and wrapped. Carriage returns
+// (Windows line endings) are dropped, so "\r"-only lines count as blank, and tabs become
+// spaces, so the words around them stay apart.
 Element notes_block(const std::string& notes) {
     Elements lines;
     std::istringstream stream(notes);
     for (std::string line; std::getline(stream, line);) {
-        if (line.find_first_not_of(" \t\r") == std::string::npos)
+        std::erase(line, '\r');
+        std::replace(line.begin(), line.end(), '\t', ' ');
+        if (line.find_first_not_of(' ') == std::string::npos)
             continue;
         lines.push_back(hbox({text("        "), paragraph(line) | dim | flex}));
     }

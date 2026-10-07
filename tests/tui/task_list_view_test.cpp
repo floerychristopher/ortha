@@ -224,3 +224,23 @@ TEST_CASE("action popup wraps around at the top and bottom") {
     CHECK(toggled.empty());
     CHECK_FALSE(contains(render(list), "Cancel"));
 }
+
+TEST_CASE("notes with Windows line endings and tabs render cleanly") {
+    auto t = make_task("Pay taxes");
+    t.notes = "Receipts\r\n\r\nDeadline\tper letter\r\n";
+    auto out = render(single_task_list(t, {}));
+    CHECK(contains(out, "Deadline per letter"));
+    CHECK_FALSE(contains(out, "\t"));
+    // The screen itself separates rows with "\r\n"; inside a row there must be none.
+    auto line = line_with(out, "Receipts");
+    if (line.ends_with('\r'))
+        line.pop_back();
+    CHECK_FALSE(contains(line, "\r"));
+    CHECK(line.ends_with("│"));
+    // The blank Windows line ("\r" only) is skipped like any blank line.
+    const auto receipts = out.find("Receipts");
+    const auto deadline = out.find("Deadline");
+    REQUIRE(deadline != std::string::npos);
+    CHECK(std::count(out.begin() + static_cast<std::ptrdiff_t>(receipts),
+                     out.begin() + static_cast<std::ptrdiff_t>(deadline), '\n') == 1);
+}
