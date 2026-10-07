@@ -7,6 +7,7 @@ add_library(ortha_tui STATIC
     error_guard.cpp
     goal_form.cpp
     goals_view.cpp
+    goal_history_view.cpp
     app.cpp
 )
 target_link_libraries(ortha_tui PUBLIC ortha_core ftxui::screen ftxui::dom ftxui::component)
