@@ -17,11 +17,16 @@ A simple, keyboard-driven to-do app for the terminal. Runs on Linux and Windows.
 Goals are daily habits like "Go to the gym" or "Study 4h" – separate from tasks.
 
 - Each goal applies on chosen weekdays (daily, or e.g. Mo We Fr).
+- A goal can have a short **symbol** – up to 2 emoji or 4 characters, e.g. `💪` or `📚4h`.
+  Without one, the first letters of the title are used.
 - The goals planned for today appear at the top of **Today**. Press Enter to rate the day:
   `[ ]` open → `[✓]` done → `[✗]` missed.
 - 🔥 shows your streak: consecutive planned days marked done. An unrated past day breaks it.
 - **Goals** in the menu lists all goals with the last seven days (`✓` done, `✗` missed,
   `○` open, `·` not planned). Enter on a goal: *History* (rate any past day), *Edit*, *Delete*.
+- **Month** in the goals view shows a habit-tracker grid: one column per goal (headed by its
+  symbol), one row per day. Move with the arrow keys, Enter rates the selected day,
+  PgUp/PgDn switch the month.
 
 ## Usage
 

@@ -34,10 +34,11 @@ class App {
     // Task actions (edit, toggle, delete) shared by the views; `back` re-opens the
     // calling view after editing.
     TaskListCallbacks task_callbacks(std::function<void()> back);
-    // Goals overview, goal form (empty id = new goal) and a goal's history.
+    // Goals overview, goal form (empty id = new goal), a goal's history and the month grid.
     void show_goals();
     void show_goal_form(std::optional<std::string> goal_id);
     void show_goal_history(const std::string& goal_id);
+    void show_goal_month();
 
     TaskRepository& repo_;
     TaskService& service_;

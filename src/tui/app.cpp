@@ -3,6 +3,7 @@
 #include "tui/error_guard.hpp"
 #include "tui/goal_form.hpp"
 #include "tui/goal_history_view.hpp"
+#include "tui/goal_month_view.hpp"
 #include "tui/goals_view.hpp"
 #include "tui/home_view.hpp"
 #include "tui/task_form.hpp"
@@ -79,6 +80,7 @@ void App::show_goals() {
         {
             .on_back = [this] { show_home(); },
             .on_new = [this] { show_goal_form(std::nullopt); },
+            .on_month = [this] { show_goal_month(); },
             .on_history = [this](const std::string& id) { show_goal_history(id); },
             .on_edit = [this](const std::string& id) { show_goal_form(id); },
             .on_delete = [this](const std::string& id) { goals_.remove(id); },
@@ -125,6 +127,24 @@ void App::show_goal_history(const std::string& goal_id) {
             return days;
         },
         [this, id = goal_id](Date day) {
+            goals_.set_status(id, day, next_status(goals_.status(id, day)));
+        },
+        [this] { show_goals(); }));
+}
+
+void App::show_goal_month() {
+    navigate(make_goal_month(
+        [this](std::chrono::year_month month) {
+            const auto days = days_of_month(month);
+            std::vector<MonthColumn> columns;
+            for (auto& goal : goals_.all()) {
+                auto entries = goals_.statuses(goal.id, days.front(), days.back());
+                columns.push_back({std::move(goal), std::move(entries)});
+            }
+            return columns;
+        },
+        today(),
+        [this](const std::string& id, Date day) {
             goals_.set_status(id, day, next_status(goals_.status(id, day)));
         },
         [this] { show_goals(); }));
