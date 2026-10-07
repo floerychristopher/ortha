@@ -193,3 +193,19 @@ TEST_CASE("list keeps the selected row in view while the action menu is open") {
     CHECK(contains(out, "Item 19"));
     CHECK_FALSE(contains(out, "Item 01"));
 }
+
+TEST_CASE("reopened action popup highlights the entry Enter acts on") {
+    std::string edited;
+    auto list = single_task_list(buy_milk(), {.on_edit = [&](auto& id) { edited = id; }});
+    list->OnEvent(ftxui::Event::Return); // open
+    for (int i = 0; i < 3; ++i)
+        list->OnEvent(ftxui::Event::ArrowDown);
+    list->OnEvent(ftxui::Event::Return); // Cancel
+    list->OnEvent(ftxui::Event::Return); // open again
+    const auto inverted = "\x1b[7m";
+    CHECK_FALSE(contains(line_with(render_styled(list), "Cancel"), inverted));
+    list->OnEvent(ftxui::Event::ArrowDown);
+    CHECK(contains(line_with(render_styled(list), "Edit"), inverted));
+    list->OnEvent(ftxui::Event::Return);
+    CHECK(edited == "id-1");
+}
