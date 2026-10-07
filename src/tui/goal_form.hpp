@@ -23,7 +23,7 @@ GoalFormState goal_form_state_from(const Goal& goal);
 // Returns the updated goal or a user-facing error message.
 std::variant<Goal, std::string> apply_goal_form(const GoalFormState& state, Goal base);
 
-// Form for creating/editing a goal. Enter in the title saves, Esc cancels.
+// Form for creating/editing a goal. Enter in the title or symbol field saves, Esc cancels.
 ftxui::Component make_goal_form(std::string heading, Goal initial,
                                 std::function<void(Goal)> on_save,
                                 std::function<void()> on_cancel);

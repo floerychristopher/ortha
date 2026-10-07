@@ -40,6 +40,7 @@ ortha
 | Tab / Shift+Tab | next / previous field in the task form |
 | Enter | open / select; in a task list: open the actions (done, edit, delete); in a one-line form field: save |
 | Esc | back / close popup |
+| PgUp / PgDn | previous / next month in the goal month grid |
 
 ## Build
 
