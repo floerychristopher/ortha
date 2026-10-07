@@ -34,7 +34,6 @@ class TaskRepository {
     Database& database() { return db_; }
 
   private:
-    void migrate();
     std::vector<Task> query(const std::string& where, std::optional<int> limit = std::nullopt);
     void load_details(Task& task);
     void save_details(Task& task, const std::string& now);

@@ -2,6 +2,7 @@ add_library(ortha_core STATIC
     date.cpp
     uuid.cpp
     sqlite.cpp
+    schema.cpp
     recurrence.cpp
     task.cpp
     task_repository.cpp

@@ -4,6 +4,7 @@ add_executable(ortha_tests
     core/date_test.cpp
     core/uuid_test.cpp
     core/sqlite_test.cpp
+    core/schema_test.cpp
     core/recurrence_test.cpp
     core/task_repository_test.cpp
     core/task_service_test.cpp
