@@ -24,10 +24,12 @@ struct TaskViewOptions {
     TaskListCallbacks callbacks;
     std::string empty_text = "Nothing here.";
     bool fill_height = true;              // rows take all remaining height (scrollable list)
+    bool show_notes = false;              // each task's notes below its row
     std::function<void()> on_changed{};   // after a task was completed, reopened or deleted
 };
 
-// A window with selectable task rows. Enter on a row opens the actions popup
+// A window with selectable task rows (optionally with their notes below them).
+// Enter on a row opens the actions popup
 // (Toggle done / Edit / Delete, with confirmation). Optional header and footer
 // components (toolbar, menu) are shown above and below the rows.
 class TaskView : public ftxui::ComponentBase {

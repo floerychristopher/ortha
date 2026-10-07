@@ -5,6 +5,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <format>
+#include <sstream>
 
 using namespace ortha;
 using namespace ortha::test;
@@ -32,6 +33,31 @@ TEST_CASE("task list says today and tomorrow instead of the date") {
     CHECK(contains(line_with(out, "Due tomorrow"), "tomorrow"));
     CHECK_FALSE(contains(out, "07.10.2026"));
     CHECK_FALSE(contains(out, "08.10.2026"));
+}
+
+TEST_CASE("task list shows notes below each task") {
+    auto taxes = make_task("Pay taxes");
+    taxes.notes = "Receipts are in the 2025 folder\n\nDeadline per letter";
+    std::vector<Task> tasks{taxes, make_task("Buy milk")};
+    auto out = render(
+        make_task_list("All Tasks", [&](bool) { return tasks; }, Date{2026y, October, 7d}, {}));
+    std::vector<std::string> lines;
+    std::istringstream stream(out);
+    for (std::string line; std::getline(stream, line);)
+        lines.push_back(line);
+    auto index_of = [&](const std::string& needle) {
+        for (std::size_t i = 0; i < lines.size(); ++i)
+            if (contains(lines[i], needle))
+                return i;
+        FAIL("missing " << needle);
+        return lines.size();
+    };
+    const auto title = index_of("Pay taxes");
+    CHECK(index_of("Receipts are in the 2025 folder") == title + 1);
+    CHECK(index_of("Deadline per letter") == title + 2); // empty note lines are skipped
+    CHECK(index_of("Buy milk") == title + 3);
+    // indented to the title
+    CHECK(lines[title + 1].find("Receipts") == lines[title].find("Pay taxes"));
 }
 
 TEST_CASE("done tasks are marked") {

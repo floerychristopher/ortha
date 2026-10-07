@@ -7,6 +7,7 @@
 #include <ftxui/dom/elements.hpp>
 
 #include <algorithm>
+#include <sstream>
 
 namespace ortha {
 
@@ -27,7 +28,19 @@ const char* priority_marker(Priority p) {
     }
 }
 
-Element task_row(const Task& task, Date today, bool focused, bool selected) {
+// The non-empty lines of the notes, indented to the title and wrapped.
+Element notes_block(const std::string& notes) {
+    Elements lines;
+    std::istringstream stream(notes);
+    for (std::string line; std::getline(stream, line);) {
+        if (line.find_first_not_of(" \t\r") == std::string::npos)
+            continue;
+        lines.push_back(hbox({text("        "), paragraph(line) | dim | flex}));
+    }
+    return vbox(std::move(lines));
+}
+
+Element task_row(const Task& task, Date today, bool show_notes, bool focused, bool selected) {
     Elements parts = {
         text(task.done ? "[x] " : "[ ] "),
         text(priority_marker(task.priority)) | color(Color::Red),
@@ -53,7 +66,9 @@ Element task_row(const Task& task, Date today, bool focused, bool selected) {
             date |= color(Color::Yellow);
         parts.push_back(date);
     }
-    auto row = hbox(std::move(parts));
+    Element row = hbox(std::move(parts));
+    if (show_notes && !task.notes.empty())
+        row = vbox({row, notes_block(task.notes)});
     if (focused)
         row |= inverted;
     // `focus` tells the scrolling frame which row to keep visible. Use the selected row,
@@ -140,7 +155,7 @@ void TaskView::reload() {
         MenuEntryOption option;
         option.label = tasks_[i].title;
         option.transform = [this, i](const EntryState& state) {
-            return task_row(tasks_[i], options_.today, state.focused,
+            return task_row(tasks_[i], options_.today, options_.show_notes, state.focused,
                             static_cast<int>(i) == selected_row_);
         };
         rows_->Add(MenuEntry(option));

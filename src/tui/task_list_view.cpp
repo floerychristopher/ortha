@@ -21,6 +21,7 @@ Component make_task_list(std::string heading, std::function<std::vector<Task>(bo
         .load = [state, load] { return load(state->show_done); },
         .today = today,
         .callbacks = callbacks,
+        .show_notes = true,
     });
 
     // The toolbar lives inside the view, so capturing the raw pointer is safe.

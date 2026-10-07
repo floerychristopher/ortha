@@ -174,3 +174,13 @@ TEST_CASE("home without a verse shows none") {
     auto out = render(make_home(options_with_tasks()));
     CHECK_FALSE(contains(out, "Psalm"));
 }
+
+TEST_CASE("home does not show task notes") {
+    auto o = options_with_tasks();
+    o.load_tasks = [] {
+        auto tasks = three_tasks();
+        tasks[0].notes = "Receipts are in the 2025 folder";
+        return tasks;
+    };
+    CHECK_FALSE(contains(render(make_home(o)), "Receipts"));
+}
