@@ -1,0 +1,158 @@
+#include "tui/task_list_view.hpp"
+#include "../core/test_helpers.hpp"
+#include "render.hpp"
+
+#include <catch2/catch_test_macros.hpp>
+
+#include <format>
+
+using namespace ortha;
+using namespace ortha::test;
+using namespace std::chrono;
+
+TEST_CASE("task list renders tasks and dates") {
+    auto overdue = make_task("Overdue thing", Date{2026y, October, 1d}, Priority::High);
+    overdue.tags = {"work"};
+    std::vector<Task> tasks{overdue, make_task("No date")};
+    auto list = make_task_list("Today", [&](bool) { return tasks; }, Date{2026y, October, 7d}, {});
+    auto out = render(list);
+    for (auto s : {"Today", "Overdue thing", "01.10.2026", "!!!", "#work", "No date",
+                   "Show done: off", "Back"}) {
+        INFO(s);
+        CHECK(contains(out, s));
+    }
+}
+
+TEST_CASE("done tasks are marked") {
+    auto t = make_task("Finished");
+    t.done = true;
+    auto list = make_task_list("All Tasks", [&](bool) { return std::vector<Task>{t}; },
+                               Date{2026y, October, 7d}, {});
+    CHECK(contains(render(list), "[x]"));
+}
+
+TEST_CASE("empty list shows placeholder, escape goes back") {
+    bool back = false;
+    auto list = make_task_list("All Tasks", [](bool) { return std::vector<Task>{}; },
+                               Date{2026y, October, 7d}, {.on_back = [&] { back = true; }});
+    CHECK(contains(render(list), "Nothing here."));
+    list->OnEvent(ftxui::Event::Escape);
+    CHECK(back);
+}
+
+TEST_CASE("list hides done tasks by default") {
+    std::vector<bool> requests;
+    auto list = make_task_list("All Tasks",
+                               [&](bool include_done) {
+                                   requests.push_back(include_done);
+                                   return std::vector<Task>{};
+                               },
+                               Date{2026y, October, 7d}, {});
+    REQUIRE_FALSE(requests.empty());
+    CHECK_FALSE(requests.back());
+}
+
+namespace {
+
+ftxui::Component single_task_list(const Task& t, TaskListCallbacks callbacks) {
+    return make_task_list("All Tasks", [t](bool) { return std::vector<Task>{t}; },
+                          Date{2026y, October, 7d}, std::move(callbacks));
+}
+
+Task buy_milk() {
+    auto t = make_task("Buy milk");
+    t.id = "id-1";
+    return t;
+}
+
+} // namespace
+
+TEST_CASE("enter opens actions, toggle calls back with id") {
+    std::string toggled;
+    auto list = single_task_list(buy_milk(), {.on_toggle_done = [&](auto& id) { toggled = id; }});
+    list->OnEvent(ftxui::Event::Return);
+    auto out = render(list);
+    CHECK(contains(out, "Toggle done"));
+    CHECK(contains(out, "Edit"));
+    CHECK(contains(out, "Delete"));
+    list->OnEvent(ftxui::Event::Return); // "Toggle done" is preselected
+    CHECK(toggled == "id-1");
+    CHECK_FALSE(contains(render(list), "Toggle done"));
+}
+
+TEST_CASE("edit action calls back with id") {
+    std::string edited;
+    auto list = single_task_list(buy_milk(), {.on_edit = [&](auto& id) { edited = id; }});
+    list->OnEvent(ftxui::Event::Return);
+    list->OnEvent(ftxui::Event::ArrowDown);
+    list->OnEvent(ftxui::Event::Return);
+    CHECK(edited == "id-1");
+}
+
+TEST_CASE("delete asks for confirmation") {
+    std::string deleted;
+    auto list = single_task_list(buy_milk(), {.on_delete = [&](auto& id) { deleted = id; }});
+    list->OnEvent(ftxui::Event::Return);
+    list->OnEvent(ftxui::Event::ArrowDown);
+    list->OnEvent(ftxui::Event::ArrowDown);
+    list->OnEvent(ftxui::Event::Return);
+    CHECK(deleted.empty());
+    CHECK(contains(render(list), "Delete \"Buy milk\"?"));
+    list->OnEvent(ftxui::Event::Return); // "Delete" is preselected
+    CHECK(deleted == "id-1");
+}
+
+TEST_CASE("escape closes the action menu instead of leaving the list") {
+    bool back = false;
+    auto list = single_task_list(buy_milk(), {.on_back = [&] { back = true; }});
+    list->OnEvent(ftxui::Event::Return);
+    list->OnEvent(ftxui::Event::Escape);
+    CHECK_FALSE(back);
+    CHECK_FALSE(contains(render(list), "Toggle done"));
+}
+
+TEST_CASE("done tasks offer reopen") {
+    auto t = buy_milk();
+    t.done = true;
+    auto list = single_task_list(t, {});
+    list->OnEvent(ftxui::Event::Return);
+    CHECK(contains(render(list), "Reopen"));
+}
+
+TEST_CASE("list shows subtask progress") {
+    auto t = make_task("Move");
+    t.subtasks = {{"a", "Pack", true}, {"b", "Drive", false}};
+    auto list = single_task_list(t, {});
+    CHECK(contains(render(list), "1/2"));
+}
+
+TEST_CASE("list marks recurring tasks") {
+    auto t = make_task("Gym", Date{2026y, October, 7d});
+    t.recurrence = RecurrenceRule{};
+    CHECK(contains(render(single_task_list(t, {})), "↻"));
+}
+
+TEST_CASE("long titles do not push the due date off screen") {
+    auto t = make_task(std::string(120, 'x'), Date{2026y, October, 9d});
+    t.tags = {"work"};
+    auto out = render(single_task_list(t, {}), 60, 10);
+    CHECK(contains(out, "09.10.2026"));
+    CHECK(contains(out, "#work"));
+}
+
+TEST_CASE("list keeps the selected row in view while the action menu is open") {
+    std::vector<Task> tasks;
+    for (int i = 1; i <= 20; ++i) {
+        auto t = make_task(std::format("Item {:02}", i));
+        t.id = std::to_string(i);
+        tasks.push_back(t);
+    }
+    auto list = make_task_list("All Tasks", [&](bool) { return tasks; }, Date{2026y, October, 7d},
+                               {});
+    for (int i = 0; i < 19; ++i)
+        list->OnEvent(ftxui::Event::ArrowDown);
+    list->OnEvent(ftxui::Event::Return);
+    auto out = render(list, 80, 12);
+    CHECK(contains(out, "Item 19"));
+    CHECK_FALSE(contains(out, "Item 01"));
+}
