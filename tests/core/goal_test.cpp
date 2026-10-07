@@ -141,6 +141,8 @@ TEST_CASE("month_cell") {
     const Date today = 2026y / October / 7d;
     auto g = mwf(2026y / October / 5d);
     CHECK(month_cell(g, 2026y / October / 9d, today, GoalStatus::Done) == CellState::Future);
+    CHECK(month_cell(g, 2026y / October / 8d, today, GoalStatus::Open) ==
+          CellState::NotScheduled); // a future Thursday is never rated either
     CHECK(month_cell(g, 2026y / October / 2d, today, GoalStatus::Open) ==
           CellState::NotScheduled); // before the start date
     CHECK(month_cell(g, 2026y / October / 6d, today, GoalStatus::Open) ==

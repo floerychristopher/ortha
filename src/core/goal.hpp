@@ -59,8 +59,8 @@ std::vector<Date> days_of_month(std::chrono::year_month month);
 // What one cell of the month grid shows. Only Open, Done and Missed can be changed.
 enum class CellState { Future, NotScheduled, Open, Done, Missed };
 
-// Future if `day` is after today, NotScheduled if the goal does not apply on `day`,
-// otherwise the given status.
+// NotScheduled if the goal does not apply on `day` (also in the future), Future if a
+// planned day is still ahead, otherwise the given status.
 CellState month_cell(const Goal& goal, Date day, Date today, GoalStatus status);
 
 } // namespace ortha

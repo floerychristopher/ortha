@@ -47,8 +47,8 @@ Monatsstatistiken (Quote, Summen pro Spalte/Zeile), Wochen- oder Jahresansicht, 
 - **Zeilen**: alle Tage des Monats, Wochentagskürzel englisch wie in `weekdays_label` (`Mo Tu We Th Fr Sa Su`) plus zweistelliger Tag. Die heutige Zeile ist fett.
 - **Zellen**:
   - `✓` grün = done, `✗` rot = missed, `○` = offen (geplant, heute oder vergangen)
-  - `·` gedimmt = nicht geplant (Wochentag nicht gewählt oder vor dem Anlagedatum)
-  - leer = Tag liegt nach heute
+  - `·` gedimmt = nicht geplant (Wochentag nicht gewählt oder vor dem Anlagedatum) – auch in der Zukunft
+  - leer = geplanter Tag, der nach heute liegt
   - die Cursor-Zelle ist invertiert
 - **Bedienung**:
   - Pfeiltasten bewegen den Cursor über die Zellen.
@@ -100,7 +100,7 @@ src/tui/
 ### Reine Funktionen in `core/goal`
 - `std::vector<Date> days_of_month(std::chrono::year_month month)` – alle Tage des Monats, aufsteigend.
 - `enum class CellState { Future, NotScheduled, Open, Done, Missed }`
-- `CellState month_cell(const Goal& goal, Date day, Date today, GoalStatus status)` – `Future` wenn `day > today`, sonst `NotScheduled` wenn `!is_scheduled(goal, day)`, sonst der Status. Nur bei `Open`/`Done`/`Missed` ist Enter wirksam.
+- `CellState month_cell(const Goal& goal, Date day, Date today, GoalStatus status)` – `NotScheduled` wenn `!is_scheduled(goal, day)` (auch in der Zukunft), sonst `Future` wenn `day > today`, sonst der Status. Nur bei `Open`/`Done`/`Missed` ist Enter wirksam.
 
 ### Monatsraster (`tui/goal_month_view`)
 - Daten pro Monat über ein Callback, z.B.

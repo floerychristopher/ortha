@@ -69,8 +69,10 @@ TEST_CASE("month grid renders header, cells, footer and legend") {
     CHECK(contains(line_with(out, "Tu 06"), "·")); // Gym is not planned on Tuesdays
     CHECK(contains(line_with(out, "Th 01"), "·")); // Gym did not exist yet
     CHECK(contains(line_with(out, "Th 01"), "○")); // Read is open
-    CHECK_FALSE(contains(line_with(out, "Th 08"), "○")); // the future stays empty
-    CHECK_FALSE(contains(line_with(out, "Th 08"), "·"));
+    CHECK(contains(line_with(out, "Th 08"), "·"));       // Gym is not planned on Thursdays
+    CHECK_FALSE(contains(line_with(out, "Th 08"), "○")); // Read: planned days ahead stay empty
+    CHECK_FALSE(contains(line_with(out, "Fr 09"), "·")); // both planned
+    CHECK_FALSE(contains(line_with(out, "Fr 09"), "○"));
     CHECK(calls.loaded == std::vector<year_month>{2026y / October});
 }
 

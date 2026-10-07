@@ -94,10 +94,10 @@ std::vector<Date> days_of_month(ch::year_month month) {
 }
 
 CellState month_cell(const Goal& goal, Date day, Date today, GoalStatus status) {
-    if (day > today)
-        return CellState::Future;
     if (!is_scheduled(goal, day))
         return CellState::NotScheduled;
+    if (day > today)
+        return CellState::Future;
     switch (status) {
     case GoalStatus::Done:
         return CellState::Done;
