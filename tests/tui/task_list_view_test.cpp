@@ -244,3 +244,28 @@ TEST_CASE("notes with Windows line endings and tabs render cleanly") {
     CHECK(std::count(out.begin() + static_cast<std::ptrdiff_t>(receipts),
                      out.begin() + static_cast<std::ptrdiff_t>(deadline), '\n') == 1);
 }
+
+TEST_CASE("show done reloads the list with done tasks") {
+    std::vector<bool> requested;
+    auto list = make_task_list(
+        "All tasks",
+        [&](bool include_done) {
+            requested.push_back(include_done);
+            auto open = make_task("Open task");
+            auto done = make_task("Done task");
+            done.done = true;
+            return include_done ? std::vector<Task>{open, done} : std::vector<Task>{open};
+        },
+        Date{2026y, October, 7d}, {});
+    CHECK_FALSE(contains(render(list), "Done task"));
+    list->OnEvent(ftxui::Event::ArrowUp);    // rows -> toolbar (Back)
+    list->OnEvent(ftxui::Event::ArrowRight); // -> Show done
+    list->OnEvent(ftxui::Event::Return);
+    auto out = render(list);
+    CHECK(contains(out, "Show done: on"));
+    CHECK(contains(out, "Done task"));
+    CHECK(requested.back());
+    list->OnEvent(ftxui::Event::Return);
+    CHECK(contains(render(list), "Show done: off"));
+    CHECK_FALSE(requested.back());
+}

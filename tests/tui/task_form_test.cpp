@@ -124,3 +124,21 @@ TEST_CASE("task form placeholders and choices are lowercase") {
         CHECK(contains(out, s));
     }
 }
+
+TEST_CASE("subtasks can be added and removed in the form") {
+    std::optional<Task> saved;
+    auto form = make_task_form("New task", make_task("Move"), [&](Task t) { saved = t; }, [] {});
+    for (int i = 0; i < 6; ++i)
+        form->OnEvent(ftxui::Event::Tab); // Title -> ... -> Repeat -> "add subtask"
+    for (char c : std::string("Rent van"))
+        form->OnEvent(ftxui::Event::Character(c));
+    form->OnEvent(ftxui::Event::Return); // adds the subtask, does not save
+    CHECK_FALSE(saved);
+    auto out = render(form, 80, 30);
+    CHECK(contains(line_with(out, "Rent van"), "Remove"));
+
+    form->OnEvent(ftxui::Event::TabReverse); // -> the new subtask row (checkbox)
+    form->OnEvent(ftxui::Event::ArrowRight); // -> its Remove button
+    form->OnEvent(ftxui::Event::Return);
+    CHECK_FALSE(contains(render(form, 80, 30), "Rent van"));
+}
