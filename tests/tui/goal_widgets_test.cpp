@@ -12,6 +12,8 @@ TEST_CASE("goal_symbol uses the symbol or the start of the title") {
     CHECK(goal_symbol(g) == "Gym");
     g.title = "abc📚"; // the emoji would make it 5 columns wide
     CHECK(goal_symbol(g) == "abc");
+    g.title = "Eat  fruit"; // no trailing space
+    CHECK(goal_symbol(g) == "Eat");
     g.symbol = "💪";
     CHECK(goal_symbol(g) == "💪");
 }

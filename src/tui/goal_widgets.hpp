@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/goal.hpp"
+#include "core/text.hpp"
 
 #include <ftxui/dom/elements.hpp>
 #include <ftxui/screen/string.hpp>
@@ -12,7 +13,8 @@ namespace ortha {
 // The widest symbol a goal may have, in terminal columns (2 emoji or 4 letters).
 inline constexpr int kMaxSymbolWidth = 4;
 
-// The goal's symbol, or the first kMaxSymbolWidth columns of its title.
+// The goal's symbol, or the first kMaxSymbolWidth columns of its title (without
+// trailing spaces).
 inline std::string goal_symbol(const Goal& goal) {
     if (!goal.symbol.empty())
         return goal.symbol;
@@ -22,7 +24,7 @@ inline std::string goal_symbol(const Goal& goal) {
             break;
         symbol += glyph;
     }
-    return symbol;
+    return trim(symbol);
 }
 
 // "[ ]", "[✓]" (green) or "[✗]" (red).
