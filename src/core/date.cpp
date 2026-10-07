@@ -67,7 +67,7 @@ std::string due_label(Date due, Date today) {
         return "today";
     if (days == 1)
         return "tomorrow";
-    return format_date(due);
+    return format_date(due) + " (" + weekday_name(due) + ")";
 }
 
 std::string to_iso(Date d) {
