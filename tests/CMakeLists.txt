@@ -7,6 +7,7 @@ add_executable(ortha_tests
     core/recurrence_test.cpp
     core/task_repository_test.cpp
     core/task_service_test.cpp
+    core/paths_test.cpp
 )
 target_link_libraries(ortha_tests PRIVATE ortha_core Catch2::Catch2WithMain)
 ortha_set_warnings(ortha_tests)
