@@ -6,6 +6,8 @@
 
 #include <functional>
 #include <optional>
+#include <random>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -35,5 +37,14 @@ struct HomeOptions {
 // ("New task", "All tasks (N)", "Goals", "Quit"), then the bible verse (if any).
 // The menu has the focus initially.
 ftxui::Component make_home(HomeOptions options);
+
+// The rows the start screen needs at `width` columns (including the verse, if any).
+int home_height(const HomeOptions& options, int width);
+
+// A random verse from `verses` that fits completely on a `width` x `height` start screen
+// next to everything else in `options` (goals, tasks, menu); nullopt if none fits.
+std::optional<BibleVerse> pick_fitting_verse(const HomeOptions& options, int width, int height,
+                                             std::span<const BibleVerse> verses,
+                                             std::mt19937& rng);
 
 } // namespace ortha

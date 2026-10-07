@@ -5,6 +5,7 @@
 #include <ftxui/component/component_options.hpp>
 #include <ftxui/component/event.hpp>
 #include <ftxui/dom/elements.hpp>
+#include <ftxui/screen/screen.hpp>
 
 #include <format>
 #include <memory>
@@ -75,6 +76,30 @@ Element verse_box(const BibleVerse& verse) {
     });
 }
 
+// The separator line plus the verse, as drawn below the menu.
+Element verse_section(const BibleVerse& verse) { return vbox({separator(), verse_box(verse)}); }
+
+// The number of rows `element` fills when drawn `width` columns wide (trailing blank rows
+// do not count). Measured with FTXUI itself, so wrapping matches the real screen. The
+// element sits in a vbox like the app's views do, so it gets its natural height instead
+// of being stretched to the whole screen.
+int used_rows(const Element& element, int width) {
+    constexpr int kMaxRows = 200;
+    auto screen = Screen::Create(Dimension::Fixed(width), Dimension::Fixed(kMaxRows));
+    Render(screen, vbox({element}));
+    int rows = 0;
+    for (int y = 0; y < kMaxRows; ++y) {
+        for (int x = 0; x < width; ++x) {
+            const auto& c = screen.PixelAt(x, y).character;
+            if (!c.empty() && c != " ") {
+                rows = y + 1;
+                break;
+            }
+        }
+    }
+    return rows;
+}
+
 } // namespace
 
 Component make_home(HomeOptions options) {
@@ -119,6 +144,27 @@ Component make_home(HomeOptions options) {
     view->set_footer(menu);
     view->focus(TaskView::Area::Footer);
     return view;
+}
+
+int home_height(const HomeOptions& options, int width) {
+    return used_rows(make_home(options)->Render(), width);
+}
+
+std::optional<BibleVerse> pick_fitting_verse(const HomeOptions& options, int width, int height,
+                                             std::span<const BibleVerse> verses,
+                                             std::mt19937& rng) {
+    auto without_verse = options;
+    without_verse.verse.reset();
+    const int free_rows = height - home_height(without_verse, width);
+    const int inner_width = width - 2; // inside the window border
+    std::vector<BibleVerse> fitting;
+    for (const auto& verse : verses)
+        if (used_rows(verse_section(verse), inner_width) <= free_rows)
+            fitting.push_back(verse);
+    if (fitting.empty())
+        return std::nullopt;
+    std::uniform_int_distribution<std::size_t> pick{0, fitting.size() - 1};
+    return fitting[pick(rng)];
 }
 
 } // namespace ortha

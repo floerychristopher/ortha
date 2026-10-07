@@ -9,26 +9,21 @@
 #include "tui/task_form.hpp"
 #include "tui/task_list_view.hpp"
 
+#include <ftxui/screen/terminal.hpp>
+
 #include <random>
 #include <stdexcept>
 
 namespace ortha {
 
-namespace {
-
-const BibleVerse& random_verse() {
-    const auto verses = bible_verses();
-    std::mt19937 rng{std::random_device{}()};
-    std::uniform_int_distribution<std::size_t> pick{0, verses.size() - 1};
-    return verses[pick(rng)];
-}
-
-} // namespace
-
 App::App(TaskRepository& repo, TaskService& service, GoalRepository& goals)
-    : repo_(repo), service_(service), goals_(goals), verse_(random_verse()) {}
+    : repo_(repo), service_(service), goals_(goals) {}
 
 void App::run() {
+    // One verse per start, chosen among those that fit completely on this terminal.
+    const auto size = ftxui::Terminal::Size();
+    std::mt19937 rng{std::random_device{}()};
+    verse_ = pick_fitting_verse(home_options(), size.dimx, size.dimy, bible_verses(), rng);
     show(home());
     screen_.Loop(guard_errors(root_, [this](const std::string& message) {
         error_ = message;
@@ -50,9 +45,15 @@ void App::show(ftxui::Component next) {
 void App::show_home() { navigate(home()); }
 
 ftxui::Component App::home() {
+    auto options = home_options();
+    options.verse = verse_;
+    return make_home(std::move(options));
+}
+
+HomeOptions App::home_options() {
     auto callbacks = task_callbacks([this] { show_home(); });
     callbacks.on_back = {}; // Esc on the start screen does nothing
-    return make_home({
+    return {
         .load_tasks = [this] { return repo_.upcoming(4); },
         .count_open = [this] { return repo_.count_open(); },
         .load_goals =
@@ -69,7 +70,7 @@ ftxui::Component App::home() {
                 goals_.set_status(id, day, next_status(goals_.status(id, day)));
             },
         .today = today(),
-        .verse = verse_,
+        .verse = std::nullopt, // chosen once in run()
         .actions =
             {
                 .on_new = [this] { show_form(std::nullopt, [this] { show_home(); }); },
@@ -78,7 +79,7 @@ ftxui::Component App::home() {
                 .on_quit = [this] { screen_.Exit(); },
             },
         .task_callbacks = std::move(callbacks),
-    });
+    };
 }
 
 void App::show_goals() {

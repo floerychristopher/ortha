@@ -4,6 +4,11 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <random>
+#include <set>
+#include <sstream>
+#include <string_view>
+
 using namespace ortha;
 using namespace ortha::test;
 using namespace std::chrono;
@@ -183,4 +188,57 @@ TEST_CASE("home does not show task notes") {
         return tasks;
     };
     CHECK_FALSE(contains(render(make_home(o)), "Receipts"));
+}
+
+TEST_CASE("home_height counts the rows the start screen needs") {
+    auto o = options_with_tasks();
+    int rows = 0; // lines that belong to the window (all others are blank)
+    // Inside a container, like in the app, the window keeps its natural height.
+    std::istringstream lines(render(ftxui::Container::Vertical({make_home(o)}), 80, 60));
+    for (std::string line; std::getline(lines, line);)
+        if (line.find_first_not_of(" \r") != std::string::npos)
+            ++rows;
+    CHECK(home_height(o, 80) == rows);
+}
+
+TEST_CASE("pick_fitting_verse only picks verses that fit completely") {
+    const std::vector<BibleVerse> verses{
+        {"Short 1,1", "A short verse."},
+        {"Long 2,2", "A long verse that needs several lines on an eighty column screen, because "
+                     "it goes on and on and on, much longer than any line of the start screen "
+                     "could ever hold, and then it goes on a little more for good measure."}};
+    auto o = options_with_tasks();
+    auto with_short = o;
+    with_short.verse = verses[0];
+    const int just_short = home_height(with_short, 80); // enough for the short verse only
+
+    std::set<std::string_view> picked;
+    for (unsigned seed = 0; seed < 30; ++seed) {
+        std::mt19937 rng{seed};
+        auto v = pick_fitting_verse(o, 80, just_short, verses, rng);
+        REQUIRE(v);
+        picked.insert(v->reference);
+    }
+    CHECK(picked == std::set<std::string_view>{"Short 1,1"});
+
+    picked.clear();
+    for (unsigned seed = 0; seed < 30; ++seed) {
+        std::mt19937 rng{seed};
+        picked.insert(pick_fitting_verse(o, 80, 60, verses, rng)->reference);
+    }
+    CHECK(picked.size() == 2); // with enough room every verse can come up
+
+    std::mt19937 rng{1};
+    CHECK_FALSE(pick_fitting_verse(o, 80, home_height(o, 80), verses, rng)); // no room at all
+}
+
+TEST_CASE("a picked verse is shown completely") {
+    auto o = options_with_tasks();
+    std::mt19937 rng{7};
+    const int height = home_height(o, 80) + 6;
+    o.verse = pick_fitting_verse(o, 80, height, bible_verses(), rng);
+    REQUIRE(o.verse);
+    auto out = render(ftxui::Container::Vertical({make_home(o)}), 80, height);
+    CHECK(contains(out, std::string(o.verse->reference)));
+    CHECK(contains(out, "╰")); // the window is not cut off
 }

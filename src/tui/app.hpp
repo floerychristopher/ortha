@@ -4,6 +4,7 @@
 #include "core/goal_repository.hpp"
 #include "core/task_repository.hpp"
 #include "core/task_service.hpp"
+#include "tui/home_view.hpp"
 #include "tui/task_list_view.hpp"
 
 #include <ftxui/component/component.hpp>
@@ -29,6 +30,8 @@ class App {
     // The start screen ("Today" + menu). Every other view returns here.
     void show_home();
     ftxui::Component home();
+    // Everything the start screen shows except the verse.
+    HomeOptions home_options();
     // Opens the task form: empty id = new task, otherwise edit. `back` runs after save/cancel.
     void show_form(std::optional<std::string> task_id, std::function<void()> back);
     void show_all();
@@ -44,7 +47,7 @@ class App {
     TaskRepository& repo_;
     TaskService& service_;
     GoalRepository& goals_;
-    BibleVerse verse_; // picked once per start, shown on the start screen
+    std::optional<BibleVerse> verse_; // picked once per start (if one fits), shown on Today
     ftxui::ScreenInteractive screen_ = ftxui::ScreenInteractive::Fullscreen();
     ftxui::Component root_ = ftxui::Container::Vertical({});
     std::string error_; // set when an operation failed; reported after the UI is closed
