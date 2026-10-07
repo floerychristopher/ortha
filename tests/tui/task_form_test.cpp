@@ -114,3 +114,13 @@ TEST_CASE("subtask rows and weekday boxes are spaced out") {
     CHECK_FALSE(contains(out, "Pack Remove"));
     CHECK_FALSE(contains(out, "Mo☐"));
 }
+
+TEST_CASE("task form placeholders and choices are lowercase") {
+    auto out = render(make_task_form("New task", Task{}, [](Task) {}, [] {}));
+    for (auto s : {"what needs to be done?", "dd.mm.yyyy", "comma separated",
+                   "notes (enter for new line)", "add subtask (enter)", "none│low│medium│high",
+                   "none│daily│weekly│monthly│yearly"}) {
+        INFO(s);
+        CHECK(contains(out, s));
+    }
+}

@@ -148,7 +148,7 @@ TEST_CASE("month grid without goals") {
     auto view = make_goal_month([](year_month) { return std::vector<MonthColumn>{}; }, kToday,
                                 [](const std::string&, Date) {}, [&] { back = true; });
     auto out = render_month(view);
-    CHECK(contains(out, "No goals yet."));
+    CHECK(contains(out, "no goals yet."));
     CHECK_FALSE(contains(out, "Empty container"));
     view->OnEvent(ftxui::Event::Escape);
     CHECK(back);

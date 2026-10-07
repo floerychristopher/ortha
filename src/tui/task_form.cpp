@@ -65,13 +65,13 @@ Component make_task_form(std::string heading, Task initial, std::function<void(T
         on_save(std::get<Task>(std::move(result)));
     };
 
-    auto title = single_line_input(&model->form.title, &model->title_cursor, "What needs to be done?", save);
-    auto due = single_line_input(&model->form.due, &model->due_cursor, "DD.MM.YYYY", save);
+    auto title = single_line_input(&model->form.title, &model->title_cursor, "what needs to be done?", save);
+    auto due = single_line_input(&model->form.due, &model->due_cursor, "dd.mm.yyyy", save);
     auto priority = Toggle(&model->priorities, &model->form.priority);
     auto tags = single_line_input(&model->form.tags, &model->tags_cursor, "comma separated", save);
     auto notes_option = InputOption::Default();
     notes_option.content = &model->form.notes;
-    notes_option.placeholder = "Notes (Enter for new line)";
+    notes_option.placeholder = "notes (enter for new line)";
     auto notes = Input(notes_option);
 
     // Subtasks: one row per subtask (checkbox + remove button), rebuilt whenever the list changes.
@@ -100,7 +100,7 @@ Component make_task_form(std::string heading, Task initial, std::function<void(T
     };
     (*rebuild_subtasks)();
     auto new_subtask = single_line_input(
-        &model->new_subtask, &model->new_subtask_cursor, "Add subtask (Enter)",
+        &model->new_subtask, &model->new_subtask_cursor, "add subtask (enter)",
         [model, rebuild_subtasks] {
             if (model->new_subtask.find_first_not_of(" \t") == std::string::npos)
                 return;

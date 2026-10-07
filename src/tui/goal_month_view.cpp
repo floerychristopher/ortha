@@ -202,7 +202,7 @@ class GoalMonthView : public ComponentBase {
         const auto title = std::format(" {} {} ", month_name(month_.month()),
                                        static_cast<int>(month_.year()));
         Element body = columns_.empty()
-                           ? text("No goals yet.") | dim
+                           ? text("no goals yet.") | dim
                            : vbox({render_grid() | flex, separator(), render_footer()});
         return window(text(title) | bold, vbox({toolbar_->Render(), separator(), body | flex}));
     }

@@ -61,7 +61,7 @@ class GoalsView : public ComponentBase {
 
         auto body = Renderer(Container::Vertical({toolbar_, rows_}, &focus_area_), [this] {
             Element list = goals_.empty()
-                               ? text("No goals yet.") | dim
+                               ? text("no goals yet.") | dim
                                : rows_->Render() | vscroll_indicator | yframe | flex;
             return window(text(" Goals ") | bold, vbox({toolbar_->Render(), separator(), list}));
         });

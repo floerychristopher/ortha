@@ -84,7 +84,7 @@ Component make_home(HomeOptions options) {
     };
     auto menu_state = std::make_shared<Menu>();
     auto update_count = [menu_state, count_open = options.count_open] {
-        menu_state->entries[1] = std::format("All Tasks ({})", count_open());
+        menu_state->entries[1] = std::format("All tasks ({})", count_open());
     };
     update_count();
 
@@ -93,7 +93,7 @@ Component make_home(HomeOptions options) {
         .load = std::move(options.load_tasks),
         .today = options.today,
         .callbacks = std::move(options.task_callbacks),
-        .empty_text = "Nothing to do.",
+        .empty_text = "nothing to do.",
         .fill_height = false,
         .on_changed = update_count,
     });

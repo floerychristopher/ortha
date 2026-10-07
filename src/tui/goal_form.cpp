@@ -60,7 +60,7 @@ Component make_goal_form(std::string heading, Goal initial, std::function<void(G
 
     auto title_option = InputOption::Default();
     title_option.content = &model->form.title;
-    title_option.placeholder = "e.g. Go to the gym";
+    title_option.placeholder = "e.g. go to the gym";
     title_option.multiline = false;
     title_option.cursor_position = &model->title_cursor;
     title_option.on_enter = save;

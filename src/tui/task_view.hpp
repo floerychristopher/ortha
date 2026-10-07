@@ -22,7 +22,7 @@ struct TaskViewOptions {
     std::function<std::vector<Task>()> load; // called whenever the rows need (re)loading
     Date today;                              // for coloring overdue / due-today dates
     TaskListCallbacks callbacks;
-    std::string empty_text = "Nothing here.";
+    std::string empty_text = "nothing here.";
     bool fill_height = true;              // rows take all remaining height (scrollable list)
     bool show_notes = false;              // each task's notes below its row
     std::function<void()> on_changed{};   // after a task was completed, reopened or deleted

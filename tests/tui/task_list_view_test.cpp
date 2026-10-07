@@ -28,7 +28,7 @@ TEST_CASE("task list says today and tomorrow instead of the date") {
     std::vector<Task> tasks{make_task("Due today", Date{2026y, October, 7d}),
                             make_task("Due tomorrow", Date{2026y, October, 8d})};
     auto out = render(
-        make_task_list("All Tasks", [&](bool) { return tasks; }, Date{2026y, October, 7d}, {}));
+        make_task_list("All tasks", [&](bool) { return tasks; }, Date{2026y, October, 7d}, {}));
     CHECK(contains(line_with(out, "Due today"), "today"));
     CHECK(contains(line_with(out, "Due tomorrow"), "tomorrow"));
     CHECK_FALSE(contains(out, "07.10.2026"));
@@ -40,7 +40,7 @@ TEST_CASE("task list shows notes below each task") {
     taxes.notes = "Receipts are in the 2025 folder\n\nDeadline per letter";
     std::vector<Task> tasks{taxes, make_task("Buy milk")};
     auto out = render(
-        make_task_list("All Tasks", [&](bool) { return tasks; }, Date{2026y, October, 7d}, {}));
+        make_task_list("All tasks", [&](bool) { return tasks; }, Date{2026y, October, 7d}, {}));
     std::vector<std::string> lines;
     std::istringstream stream(out);
     for (std::string line; std::getline(stream, line);)
@@ -63,23 +63,23 @@ TEST_CASE("task list shows notes below each task") {
 TEST_CASE("done tasks are marked") {
     auto t = make_task("Finished");
     t.done = true;
-    auto list = make_task_list("All Tasks", [&](bool) { return std::vector<Task>{t}; },
+    auto list = make_task_list("All tasks", [&](bool) { return std::vector<Task>{t}; },
                                Date{2026y, October, 7d}, {});
     CHECK(contains(render(list), "[x]"));
 }
 
 TEST_CASE("empty list shows placeholder, escape goes back") {
     bool back = false;
-    auto list = make_task_list("All Tasks", [](bool) { return std::vector<Task>{}; },
+    auto list = make_task_list("All tasks", [](bool) { return std::vector<Task>{}; },
                                Date{2026y, October, 7d}, {.on_back = [&] { back = true; }});
-    CHECK(contains(render(list), "Nothing here."));
+    CHECK(contains(render(list), "nothing here."));
     list->OnEvent(ftxui::Event::Escape);
     CHECK(back);
 }
 
 TEST_CASE("list hides done tasks by default") {
     std::vector<bool> requests;
-    auto list = make_task_list("All Tasks",
+    auto list = make_task_list("All tasks",
                                [&](bool include_done) {
                                    requests.push_back(include_done);
                                    return std::vector<Task>{};
@@ -92,7 +92,7 @@ TEST_CASE("list hides done tasks by default") {
 namespace {
 
 ftxui::Component single_task_list(const Task& t, TaskListCallbacks callbacks) {
-    return make_task_list("All Tasks", [t](bool) { return std::vector<Task>{t}; },
+    return make_task_list("All tasks", [t](bool) { return std::vector<Task>{t}; },
                           Date{2026y, October, 7d}, std::move(callbacks));
 }
 
@@ -184,7 +184,7 @@ TEST_CASE("list keeps the selected row in view while the action menu is open") {
         t.id = std::to_string(i);
         tasks.push_back(t);
     }
-    auto list = make_task_list("All Tasks", [&](bool) { return tasks; }, Date{2026y, October, 7d},
+    auto list = make_task_list("All tasks", [&](bool) { return tasks; }, Date{2026y, October, 7d},
                                {});
     for (int i = 0; i < 19; ++i)
         list->OnEvent(ftxui::Event::ArrowDown);

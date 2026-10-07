@@ -63,7 +63,8 @@ TEST_CASE("goal form renders and saves on enter") {
     std::optional<Goal> saved;
     auto form = make_goal_form("New goal", Goal{}, [&](Goal g) { saved = g; }, [] {});
     auto out = render(form);
-    for (auto s : {"New goal", "Title", "Symbol", "Days", "Mo", "Su", "Save", "Cancel"}) {
+    for (auto s : {"New goal", "Title", "e.g. go to the gym", "e.g. 💪", "Symbol", "Days", "Mo",
+                   "Su", "Save", "Cancel"}) {
         INFO(s);
         CHECK(contains(out, s));
     }

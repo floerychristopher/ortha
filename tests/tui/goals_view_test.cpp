@@ -46,7 +46,7 @@ TEST_CASE("empty goals view") {
     bool back = false;
     auto view = make_goals_view([] { return std::vector<GoalSummary>{}; },
                                 {.on_back = [&] { back = true; }});
-    CHECK(contains(render(view), "No goals yet."));
+    CHECK(contains(render(view), "no goals yet."));
     view->OnEvent(ftxui::Event::Escape);
     CHECK(back);
 }

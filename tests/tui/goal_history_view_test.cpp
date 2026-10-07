@@ -57,6 +57,6 @@ TEST_CASE("history without scheduled days shows a placeholder") {
     auto view = make_goal_history("Later", [] { return std::vector<HistoryDay>{}; },
                                   [](Date) {}, [] {});
     auto out = render(view);
-    CHECK(contains(out, "No days yet."));
+    CHECK(contains(out, "no days yet."));
     CHECK_FALSE(contains(out, "Empty container"));
 }

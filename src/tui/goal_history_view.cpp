@@ -58,7 +58,7 @@ Component make_goal_history(std::string title, std::function<std::vector<History
     reload();
 
     auto view = Renderer(state->rows, [state, title] {
-        auto body = state->days.empty() ? text("No days yet.") | dim
+        auto body = state->days.empty() ? text("no days yet.") | dim
                                         : state->rows->Render() | vscroll_indicator | yframe | flex;
         return window(text(" History: " + title + " ") | bold, body);
     });

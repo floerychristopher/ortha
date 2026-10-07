@@ -165,7 +165,7 @@ void App::show_goal_month() {
 
 void App::show_all() {
     navigate(make_task_list(
-        "All Tasks", [this](bool include_done) { return repo_.all(include_done); }, today(),
+        "All tasks", [this](bool include_done) { return repo_.all(include_done); }, today(),
         task_callbacks([this] { show_all(); })));
 }
 

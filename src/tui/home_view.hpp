@@ -32,7 +32,7 @@ struct HomeOptions {
 };
 
 // The start screen: today's goals (if any), the next few tasks ("Today") and the menu
-// ("New task", "All Tasks (N)", "Goals", "Quit"), then the bible verse (if any).
+// ("New task", "All tasks (N)", "Goals", "Quit"), then the bible verse (if any).
 // The menu has the focus initially.
 ftxui::Component make_home(HomeOptions options);
 

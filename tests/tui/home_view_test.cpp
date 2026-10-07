@@ -52,7 +52,7 @@ TEST_CASE("home shows today's tasks and the menu with the open count") {
     auto home = make_home(options_with_tasks(5));
     auto out = render(home);
     for (auto s : {"Today", "Pay taxes", "06.10.2026", "Buy milk", "Gym", "New task",
-                   "All Tasks (5)", "Goals", "Quit"}) {
+                   "All tasks (5)", "Goals", "Quit"}) {
         INFO(s);
         CHECK(contains(out, s));
     }
@@ -64,8 +64,8 @@ TEST_CASE("home without tasks says so") {
     o.count_open = [] { return 0; };
     o.today = kToday;
     auto home = make_home(o);
-    CHECK(contains(render(home), "Nothing to do."));
-    CHECK(contains(render(home), "All Tasks (0)"));
+    CHECK(contains(render(home), "nothing to do."));
+    CHECK(contains(render(home), "All tasks (0)"));
 }
 
 TEST_CASE("home starts on 'New task' and the menu triggers its actions") {
@@ -109,7 +109,7 @@ TEST_CASE("tasks on home can be completed, the count updates") {
     home->OnEvent(ftxui::Event::Return);
     CHECK(toggled == "id-2");
     auto out = render(home);
-    CHECK(contains(out, "All Tasks (2)"));
+    CHECK(contains(out, "All tasks (2)"));
     CHECK_FALSE(contains(out, "Gym"));
 }
 
