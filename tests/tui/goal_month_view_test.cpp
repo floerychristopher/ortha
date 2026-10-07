@@ -3,8 +3,6 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-#include <sstream>
-
 using namespace ortha;
 using namespace ortha::test;
 using namespace std::chrono;
@@ -34,15 +32,6 @@ std::vector<MonthColumn> two_columns() {
 }
 
 std::string render_month(const ftxui::Component& view) { return render(view, 80, 50); }
-
-// The first rendered line that contains `needle`.
-std::string line_with(const std::string& out, const std::string& needle) {
-    std::istringstream lines(out);
-    for (std::string line; std::getline(lines, line);)
-        if (contains(line, needle))
-            return line;
-    return {};
-}
 
 struct Calls {
     std::vector<std::pair<std::string, Date>> cycled;

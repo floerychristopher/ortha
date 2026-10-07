@@ -5,6 +5,7 @@
 #include <ftxui/screen/screen.hpp>
 
 #include <regex>
+#include <sstream>
 #include <string>
 
 namespace ortha::test {
@@ -20,6 +21,15 @@ inline std::string render(const ftxui::Component& component, int width = 80, int
 
 inline bool contains(const std::string& haystack, const std::string& needle) {
     return haystack.find(needle) != std::string::npos;
+}
+
+// The first rendered line that contains `needle` (empty if none).
+inline std::string line_with(const std::string& out, const std::string& needle) {
+    std::istringstream lines(out);
+    for (std::string line; std::getline(lines, line);)
+        if (contains(line, needle))
+            return line;
+    return {};
 }
 
 } // namespace ortha::test
