@@ -35,14 +35,18 @@ void App::show_home() { navigate(home()); }
 ftxui::Component App::home() {
     auto callbacks = task_callbacks([this] { show_home(); });
     callbacks.on_back = {}; // Esc on the start screen does nothing
-    return make_home([this] { return repo_.upcoming(3); }, [this] { return repo_.count_open(); },
-                     today(),
-                     {
-                         .on_new = [this] { show_form(std::nullopt, [this] { show_home(); }); },
-                         .on_all = [this] { show_all(); },
-                         .on_quit = [this] { screen_.Exit(); },
-                     },
-                     std::move(callbacks));
+    return make_home({
+        .load_tasks = [this] { return repo_.upcoming(3); },
+        .count_open = [this] { return repo_.count_open(); },
+        .today = today(),
+        .actions =
+            {
+                .on_new = [this] { show_form(std::nullopt, [this] { show_home(); }); },
+                .on_all = [this] { show_all(); },
+                .on_quit = [this] { screen_.Exit(); },
+            },
+        .task_callbacks = std::move(callbacks),
+    });
 }
 
 void App::show_all() {
