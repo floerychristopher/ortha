@@ -7,6 +7,7 @@ add_executable(ortha_tests
     core/schema_test.cpp
     core/recurrence_test.cpp
     core/goal_test.cpp
+    core/goal_repository_test.cpp
     core/task_repository_test.cpp
     core/task_service_test.cpp
     core/paths_test.cpp
