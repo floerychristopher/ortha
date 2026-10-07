@@ -9,12 +9,24 @@
 #include "tui/task_form.hpp"
 #include "tui/task_list_view.hpp"
 
+#include <random>
 #include <stdexcept>
 
 namespace ortha {
 
+namespace {
+
+const BibleVerse& random_verse() {
+    const auto verses = bible_verses();
+    std::mt19937 rng{std::random_device{}()};
+    std::uniform_int_distribution<std::size_t> pick{0, verses.size() - 1};
+    return verses[pick(rng)];
+}
+
+} // namespace
+
 App::App(TaskRepository& repo, TaskService& service, GoalRepository& goals)
-    : repo_(repo), service_(service), goals_(goals) {}
+    : repo_(repo), service_(service), goals_(goals), verse_(random_verse()) {}
 
 void App::run() {
     show(home());
@@ -57,6 +69,7 @@ ftxui::Component App::home() {
                 goals_.set_status(id, day, next_status(goals_.status(id, day)));
             },
         .today = today(),
+        .verse = verse_,
         .actions =
             {
                 .on_new = [this] { show_form(std::nullopt, [this] { show_home(); }); },

@@ -67,6 +67,14 @@ Component goals_section(std::function<std::vector<GoalSummary>()> load,
     });
 }
 
+// The verse text (wrapped) with its reference right-aligned below it.
+Element verse_box(const BibleVerse& verse) {
+    return vbox({
+        paragraph(std::string(verse.text)) | italic,
+        hbox({filler(), text(std::string(verse.reference)) | dim}),
+    });
+}
+
 } // namespace
 
 Component make_home(HomeOptions options) {
@@ -102,7 +110,13 @@ Component make_home(HomeOptions options) {
         if (const auto& fn = *targets[menu_state->selected])
             fn();
     };
-    view->set_footer(ftxui::Menu(menu_option));
+    auto menu = ftxui::Menu(menu_option);
+    if (options.verse) {
+        menu = Renderer(menu, [menu, verse = *options.verse] {
+            return vbox({menu->Render(), separator(), verse_box(verse)});
+        });
+    }
+    view->set_footer(menu);
     view->focus(TaskView::Area::Footer);
     return view;
 }

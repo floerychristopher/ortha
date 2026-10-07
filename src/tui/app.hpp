@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/bible_verses.hpp"
 #include "core/goal_repository.hpp"
 #include "core/task_repository.hpp"
 #include "core/task_service.hpp"
@@ -43,6 +44,7 @@ class App {
     TaskRepository& repo_;
     TaskService& service_;
     GoalRepository& goals_;
+    BibleVerse verse_; // picked once per start, shown on the start screen
     ftxui::ScreenInteractive screen_ = ftxui::ScreenInteractive::Fullscreen();
     ftxui::Component root_ = ftxui::Container::Vertical({});
     std::string error_; // set when an operation failed; reported after the UI is closed

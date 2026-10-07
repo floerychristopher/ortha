@@ -159,3 +159,18 @@ TEST_CASE("long goal titles keep the streak visible") {
     };
     CHECK(contains(render(make_home(o), 50, 24), "🔥 3"));
 }
+
+TEST_CASE("home shows the bible verse below the menu") {
+    auto o = options_with_tasks();
+    o.verse = BibleVerse{"Psalm 23,4", "Und ob ich schon wanderte im finstern Tal, fürchte ich "
+                                       "kein Unglück; denn du bist bei mir"};
+    auto out = render(make_home(o), 80, 30);
+    CHECK(contains(out, "Psalm 23,4"));
+    CHECK(contains(out, "finstern Tal"));
+    CHECK(out.find("Quit") < out.find("finstern Tal"));
+}
+
+TEST_CASE("home without a verse shows none") {
+    auto out = render(make_home(options_with_tasks()));
+    CHECK_FALSE(contains(out, "Psalm"));
+}

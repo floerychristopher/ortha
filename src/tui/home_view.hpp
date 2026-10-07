@@ -1,9 +1,11 @@
 #pragma once
 
+#include "core/bible_verses.hpp"
 #include "core/goal_repository.hpp"
 #include "tui/task_view.hpp"
 
 #include <functional>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -24,12 +26,14 @@ struct HomeOptions {
     };
     std::function<void(const std::string& goal_id)> on_cycle_goal{};
     Date today;
+    std::optional<BibleVerse> verse; // shown below the menu
     HomeActions actions;
     TaskListCallbacks task_callbacks;
 };
 
 // The start screen: today's goals (if any), the next few tasks ("Today") and the menu
-// ("New task", "All Tasks (N)", "Goals", "Quit"). The menu has the focus initially.
+// ("New task", "All Tasks (N)", "Goals", "Quit"), then the bible verse (if any).
+// The menu has the focus initially.
 ftxui::Component make_home(HomeOptions options);
 
 } // namespace ortha
