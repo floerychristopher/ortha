@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/goal_repository.hpp"
 #include "core/task_repository.hpp"
 #include "core/task_service.hpp"
 #include "tui/task_list_view.hpp"
@@ -16,7 +17,7 @@ namespace ortha {
 // Owns the terminal screen and switches between the views (menu, lists, form).
 class App {
   public:
-    App(TaskRepository& repo, TaskService& service);
+    App(TaskRepository& repo, TaskService& service, GoalRepository& goals);
     // Runs until the user quits. Throws if an operation failed (after restoring the terminal).
     void run();
 
@@ -33,9 +34,14 @@ class App {
     // Task actions (edit, toggle, delete) shared by the views; `back` re-opens the
     // calling view after editing.
     TaskListCallbacks task_callbacks(std::function<void()> back);
+    // Goals overview, goal form (empty id = new goal) and a goal's history.
+    void show_goals();
+    void show_goal_form(std::optional<std::string> goal_id);
+    void show_goal_history(const std::string& goal_id);
 
     TaskRepository& repo_;
     TaskService& service_;
+    GoalRepository& goals_;
     ftxui::ScreenInteractive screen_ = ftxui::ScreenInteractive::Fullscreen();
     ftxui::Component root_ = ftxui::Container::Vertical({});
     std::string error_; // set when an operation failed; reported after the UI is closed
