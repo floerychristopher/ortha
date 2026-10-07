@@ -209,3 +209,18 @@ TEST_CASE("reopened action popup highlights the entry Enter acts on") {
     list->OnEvent(ftxui::Event::Return);
     CHECK(edited == "id-1");
 }
+
+TEST_CASE("action popup wraps around at the top and bottom") {
+    std::string toggled;
+    auto list = single_task_list(buy_milk(), {.on_toggle_done = [&](auto& id) { toggled = id; }});
+    const auto inverted = "\x1b[7m";
+    list->OnEvent(ftxui::Event::Return);  // open on "Toggle done"
+    list->OnEvent(ftxui::Event::ArrowUp); // wraps to "Cancel"
+    CHECK(contains(line_with(render_styled(list), "Cancel"), inverted));
+    list->OnEvent(ftxui::Event::ArrowDown); // wraps back to "Toggle done"
+    CHECK(contains(line_with(render_styled(list), "Toggle done"), inverted));
+    list->OnEvent(ftxui::Event::ArrowUp);
+    list->OnEvent(ftxui::Event::Return); // Cancel: closes without an action
+    CHECK(toggled.empty());
+    CHECK_FALSE(contains(render(list), "Cancel"));
+}

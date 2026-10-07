@@ -22,6 +22,7 @@ add_executable(ortha_tests
     tui/goal_history_view_test.cpp
     tui/goal_widgets_test.cpp
     tui/goal_month_view_test.cpp
+    tui/popup_test.cpp
 )
 target_link_libraries(ortha_tests PRIVATE ortha_tui Catch2::Catch2WithMain)
 ortha_set_warnings(ortha_tests)
