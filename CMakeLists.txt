@@ -7,6 +7,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(ORTHA_BUILD_TESTS "Build the ortha unit tests" ON)
+option(ORTHA_SANITIZE "Build with AddressSanitizer and UndefinedBehaviorSanitizer (GCC/Clang)" OFF)
 
 include(cmake/ProjectOptions.cmake)
 include(cmake/Dependencies.cmake)
