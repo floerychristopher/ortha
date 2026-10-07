@@ -12,6 +12,17 @@ A simple, keyboard-driven to-do app for the terminal. Runs on Linux and Windows.
   counted from the due date or from the day you complete it.
   Completing a repeating task creates the next one automatically (marked with ↻).
 
+## Goals
+
+Goals are daily habits like "Go to the gym" or "Study 4h" – separate from tasks.
+
+- Each goal applies on chosen weekdays (daily, or e.g. Mo We Fr).
+- The goals planned for today appear at the top of **Today**. Press Enter to rate the day:
+  `[ ]` open → `[✓]` done → `[✗]` missed.
+- 🔥 shows your streak: consecutive planned days marked done. An unrated past day breaks it.
+- **Goals** in the menu lists all goals with the last seven days (`✓` done, `✗` missed,
+  `○` open, `·` not planned). Enter on a goal: *History* (rate any past day), *Edit*, *Delete*.
+
 ## Usage
 
 ```sh
