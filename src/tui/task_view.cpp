@@ -1,5 +1,7 @@
 #include "tui/task_view.hpp"
 
+#include "tui/popup.hpp"
+
 #include <ftxui/component/component_options.hpp>
 #include <ftxui/component/event.hpp>
 #include <ftxui/dom/elements.hpp>
@@ -59,15 +61,6 @@ Element task_row(const Task& task, Date today, bool focused, bool selected) {
     if (selected)
         row |= focus;
     return row;
-}
-
-Component popup_menu(std::vector<std::string>* entries, int* selected,
-                     std::function<void()> on_enter) {
-    auto option = MenuOption::Vertical();
-    option.entries = entries;
-    option.selected = selected;
-    option.on_enter = std::move(on_enter);
-    return Menu(option);
 }
 
 } // namespace

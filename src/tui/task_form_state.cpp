@@ -1,16 +1,10 @@
 #include "tui/task_form_state.hpp"
 
+#include "core/text.hpp"
+
 namespace ortha {
 
 namespace {
-
-std::string trim(const std::string& s) {
-    const auto first = s.find_first_not_of(" \t\r\n");
-    if (first == std::string::npos)
-        return {};
-    const auto last = s.find_last_not_of(" \t\r\n");
-    return s.substr(first, last - first + 1);
-}
 
 std::optional<int> parse_interval(const std::string& text) {
     const auto s = trim(text);
