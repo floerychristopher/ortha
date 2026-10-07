@@ -11,6 +11,7 @@ option(ORTHA_BUILD_TESTS "Build the ortha unit tests" ON)
 include(cmake/ProjectOptions.cmake)
 include(cmake/Dependencies.cmake)
 
+add_subdirectory(src/core)
 
 if(ORTHA_BUILD_TESTS)
     enable_testing()

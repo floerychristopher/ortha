@@ -1,0 +1,30 @@
+#pragma once
+
+#include <chrono>
+#include <optional>
+#include <string>
+#include <string_view>
+
+namespace ortha {
+
+// A calendar day without time of day, e.g. 2026-10-07.
+using Date = std::chrono::year_month_day;
+
+// Parses "DD.MM.YYYY" (day and month may have one or two digits, surrounding
+// whitespace is ignored). Returns nullopt for malformed or non-existent dates.
+std::optional<Date> parse_date(std::string_view text);
+
+// "05.03.2026" - the format shown to the user.
+std::string format_date(Date d);
+
+// "2026-03-05" - the format stored in the database.
+std::string to_iso(Date d);
+std::optional<Date> from_iso(std::string_view text);
+
+// The current date in the local time zone.
+Date today();
+
+// The current time in UTC, e.g. "2026-10-07T08:15:30Z".
+std::string now_utc_iso();
+
+} // namespace ortha
