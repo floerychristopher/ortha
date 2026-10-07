@@ -8,6 +8,7 @@ add_library(ortha_tui STATIC
     goal_form.cpp
     goals_view.cpp
     goal_history_view.cpp
+    goal_month_view.cpp
     app.cpp
 )
 target_link_libraries(ortha_tui PUBLIC ortha_core ftxui::screen ftxui::dom ftxui::component)
