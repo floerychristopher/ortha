@@ -1,5 +1,6 @@
 #include "tui/goals_view.hpp"
 
+#include "tui/goal_widgets.hpp"
 #include "tui/popup.hpp"
 
 #include <ftxui/component/event.hpp>
@@ -31,7 +32,7 @@ Element week_strip(const std::array<std::optional<GoalStatus>, 7>& week) {
 
 Element goal_row(const GoalSummary& goal, bool focused, bool selected) {
     auto row = hbox({
-        text(goal.goal.title) | flex_shrink,
+        text(goal_symbol(goal.goal) + " " + goal.goal.title) | flex_shrink,
         filler(),
         text("  " + weekdays_label(goal.goal.weekdays)) | size(WIDTH, EQUAL, 22),
         week_strip(goal.last_week),
@@ -52,7 +53,10 @@ class GoalsView : public ComponentBase {
         auto add = Button(
             "New goal", [this] { callbacks_.on_new ? callbacks_.on_new() : void(); },
             ButtonOption::Ascii());
-        toolbar_ = Container::Horizontal({back, add});
+        auto month = Button(
+            "Month", [this] { callbacks_.on_month ? callbacks_.on_month() : void(); },
+            ButtonOption::Ascii());
+        toolbar_ = Container::Horizontal({back, add, month});
         rows_ = Container::Vertical({}, &selected_row_);
 
         auto body = Renderer(Container::Vertical({toolbar_, rows_}, &focus_area_), [this] {

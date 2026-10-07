@@ -92,3 +92,19 @@ TEST_CASE("escape closes the goal popup first") {
     CHECK_FALSE(back);
     CHECK_FALSE(contains(render(view), "History"));
 }
+
+TEST_CASE("goals view shows symbols and opens the month grid") {
+    auto goals = two_goals();
+    goals[0].goal.symbol = "💪";
+    bool month = false;
+    auto view = make_goals_view([&] { return goals; }, {.on_month = [&] { month = true; }});
+    auto out = render(view);
+    CHECK(contains(out, "Month"));
+    CHECK(contains(out, "💪 Gym"));
+    CHECK(contains(out, "Read Read")); // no symbol: the start of the title stands in
+    view->OnEvent(ftxui::Event::ArrowUp); // rows -> toolbar (Back)
+    view->OnEvent(ftxui::Event::ArrowRight);
+    view->OnEvent(ftxui::Event::ArrowRight);
+    view->OnEvent(ftxui::Event::Return);
+    CHECK(month);
+}
