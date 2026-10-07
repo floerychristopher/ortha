@@ -4,6 +4,7 @@ add_library(ortha_core STATIC
     sqlite.cpp
     schema.cpp
     recurrence.cpp
+    goal.cpp
     task.cpp
     task_repository.cpp
     task_service.cpp
