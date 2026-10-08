@@ -3,7 +3,7 @@
 # Green: silent. Red: exit code 2 hands the last lines back to Claude, once per turn
 # (stop_hook_active is set when Claude is already continuing because of this hook).
 input=$(cat)
-if [ "$(jq -r '.stop_hook_active // false' <<<"$input")" = "true" ]; then
+if grep -Eq '"stop_hook_active"[[:space:]]*:[[:space:]]*true' <<<"$input"; then
     exit 0
 fi
 cd "${CLAUDE_PROJECT_DIR:-$(dirname "$0")/../..}" || exit 0
