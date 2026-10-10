@@ -82,9 +82,31 @@ std::optional<Date> from_iso(std::string_view text) {
                      parse_number(text.substr(8, 2), 2, 2));
 }
 
+Date previous_day(Date d) { return Date{std::chrono::sys_days{d} - std::chrono::days{1}}; }
+
 Date today() {
     const auto local = std::chrono::current_zone()->to_local(std::chrono::system_clock::now());
     return Date{std::chrono::floor<std::chrono::days>(local)};
+}
+
+int now_minutes() {
+    const auto local = std::chrono::current_zone()->to_local(std::chrono::system_clock::now());
+    const auto since_midnight = local - std::chrono::floor<std::chrono::days>(local);
+    return static_cast<int>(std::chrono::duration_cast<std::chrono::minutes>(since_midnight).count());
+}
+
+int routine_minutes(int clock_minutes) {
+    return (clock_minutes - kDayStart + 24 * 60) % (24 * 60);
+}
+
+Date habit_day(Date date, int clock_minutes) {
+    return clock_minutes < kDayStart ? previous_day(date) : date;
+}
+
+Date habit_today() {
+    // One clock read, so date and time of day can't fall on either side of midnight.
+    const auto local = std::chrono::current_zone()->to_local(std::chrono::system_clock::now());
+    return Date{std::chrono::floor<std::chrono::days>(local - std::chrono::minutes{kDayStart})};
 }
 
 std::string now_utc_iso() {

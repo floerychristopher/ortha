@@ -6,12 +6,6 @@ namespace ortha {
 
 namespace ch = std::chrono;
 
-namespace {
-
-Date previous_day(Date day) { return Date{ch::sys_days{day} - ch::days{1}}; }
-
-} // namespace
-
 int weekday_index(Date day) {
     return static_cast<int>(ch::weekday{ch::sys_days{day}}.iso_encoding()) - 1;
 }
@@ -27,28 +21,62 @@ GoalStatus next_status(GoalStatus status) {
     case GoalStatus::Done:
         return GoalStatus::Missed;
     case GoalStatus::Missed:
+        return GoalStatus::Skipped;
+    case GoalStatus::Skipped:
         return GoalStatus::Open;
     }
     return GoalStatus::Open;
 }
 
-int streak(const Goal& goal, Date today, const StatusLookup& status_of) {
+GoalStatus status_on(const std::map<Date, GoalStatus>& entries, Date day) {
+    const auto it = entries.find(day);
+    return it == entries.end() ? GoalStatus::Open : it->second;
+}
+
+int chain_length(Date today, Date first, const std::function<DayRating(Date)>& rate) {
     int count = 0;
-    if (is_scheduled(goal, today)) {
-        const auto status = status_of(today);
-        if (status == GoalStatus::Missed)
-            return 0;
-        if (status == GoalStatus::Done)
-            count = 1;
+    bool missed_before = false; // the newer rated day was a miss
+    for (Date day = today; day >= first; day = previous_day(day)) {
+        switch (rate(day)) {
+        case DayRating::Pass:
+            break;
+        case DayRating::Done:
+            ++count;
+            missed_before = false;
+            break;
+        case DayRating::Miss:
+            if (missed_before)
+                return count; // two misses in a row
+            missed_before = true;
+            break;
+        }
     }
+    return count;
+}
+
+int streak(const Goal& goal, Date today, const StatusLookup& status_of) {
+    return chain_length(today, goal.start, [&](Date day) {
+        if (!is_scheduled(goal, day))
+            return DayRating::Pass;
+        const auto status = status_of(day);
+        if (status == GoalStatus::Skipped || (day == today && status == GoalStatus::Open))
+            return DayRating::Pass;
+        return status == GoalStatus::Done ? DayRating::Done : DayRating::Miss;
+    });
+}
+
+bool missed_last_time(const Goal& goal, Date today, const StatusLookup& status_of) {
+    if (!is_scheduled(goal, today) || status_of(today) != GoalStatus::Open)
+        return false;
     for (Date day = previous_day(today); day >= goal.start; day = previous_day(day)) {
         if (!is_scheduled(goal, day))
             continue;
-        if (status_of(day) != GoalStatus::Done)
-            break;
-        ++count;
+        const auto status = status_of(day);
+        if (status == GoalStatus::Skipped)
+            continue;
+        return status != GoalStatus::Done;
     }
-    return count;
+    return false;
 }
 
 std::array<std::optional<GoalStatus>, 7> last_week(const Goal& goal, Date today,
@@ -69,6 +97,16 @@ std::vector<Date> scheduled_days(const Goal& goal, Date today) {
             days.push_back(day);
     }
     return days;
+}
+
+GoalSummary summarize(const Goal& goal, Date today, const StatusLookup& status_of) {
+    GoalSummary s;
+    s.goal = goal;
+    s.today = status_of(today);
+    s.streak = streak(goal, today, status_of);
+    s.last_week = last_week(goal, today, status_of);
+    s.missed_last_time = missed_last_time(goal, today, status_of);
+    return s;
 }
 
 std::string weekdays_label(const Weekdays& days) {
@@ -96,6 +134,8 @@ std::vector<Date> days_of_month(ch::year_month month) {
 CellState month_cell(const Goal& goal, Date day, Date today, GoalStatus status) {
     if (!is_scheduled(goal, day))
         return CellState::NotScheduled;
+    if (status == GoalStatus::Skipped)
+        return CellState::Skipped;
     if (day > today)
         return CellState::Future;
     switch (status) {

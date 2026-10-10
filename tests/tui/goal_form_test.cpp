@@ -7,13 +7,28 @@ using namespace ortha;
 using namespace ortha::test;
 using namespace std::chrono;
 
+namespace {
+
+std::vector<Routine> routines() {
+    Routine morning, night;
+    morning.id = "morning";
+    morning.name = "Morning routine";
+    morning.start = 480;
+    night.id = "night";
+    night.name = "Night routine";
+    night.start = 1380;
+    return {morning, night};
+}
+
+} // namespace
+
 TEST_CASE("apply_goal_form validates") {
     GoalFormState s;
     s.title = "  ";
-    CHECK(std::get<std::string>(apply_goal_form(s, Goal{})) == "Title must not be empty");
+    CHECK(std::get<std::string>(apply_goal_form(s, Goal{}, routines())) == "Title must not be empty");
     s.title = "Gym";
     s.weekdays = {};
-    CHECK(std::get<std::string>(apply_goal_form(s, Goal{})) == "Choose at least one day");
+    CHECK(std::get<std::string>(apply_goal_form(s, Goal{}, routines())) == "Choose at least one day");
 }
 
 TEST_CASE("apply_goal_form keeps identity and trims") {
@@ -21,8 +36,8 @@ TEST_CASE("apply_goal_form keeps identity and trims") {
     base.id = "g1";
     base.start = 2026y / October / 1d;
     base.created_at = "2026-10-01T00:00:00Z";
-    GoalFormState s{" Gym ", {true, false, true, false, true, false, false}, ""};
-    auto g = std::get<Goal>(apply_goal_form(s, base));
+    GoalFormState s{" Gym ", {true, false, true, false, true, false, false}, "", 0};
+    auto g = std::get<Goal>(apply_goal_form(s, base, routines()));
     CHECK(g.id == "g1");
     CHECK(g.start == Date{2026y, October, 1d});
     CHECK(g.created_at == "2026-10-01T00:00:00Z");
@@ -36,16 +51,16 @@ TEST_CASE("apply_goal_form checks the symbol width") {
     for (auto ok : {"", "💪", "📚💪", "GYM", "LESE", "📚4h"}) {
         INFO(ok);
         s.symbol = ok;
-        CHECK(std::holds_alternative<Goal>(apply_goal_form(s, Goal{})));
+        CHECK(std::holds_alternative<Goal>(apply_goal_form(s, Goal{}, routines())));
     }
     for (auto bad : {"LESEN", "📚💪🏃", "📚4h!"}) {
         INFO(bad);
         s.symbol = bad;
-        CHECK(std::get<std::string>(apply_goal_form(s, Goal{})) ==
+        CHECK(std::get<std::string>(apply_goal_form(s, Goal{}, routines())) ==
               "Symbol is too wide (max. 2 emoji or 4 characters)");
     }
     s.symbol = " 💪 ";
-    CHECK(std::get<Goal>(apply_goal_form(s, Goal{})).symbol == "💪");
+    CHECK(std::get<Goal>(apply_goal_form(s, Goal{}, routines())).symbol == "💪");
 }
 
 TEST_CASE("goal_form_state_from copies the goal") {
@@ -53,7 +68,7 @@ TEST_CASE("goal_form_state_from copies the goal") {
     g.title = "Read";
     g.symbol = "📚";
     g.weekdays = {false, false, false, false, false, true, true};
-    auto s = goal_form_state_from(g);
+    auto s = goal_form_state_from(g, routines());
     CHECK(s.title == "Read");
     CHECK(s.symbol == "📚");
     CHECK(s.weekdays == g.weekdays);
@@ -61,7 +76,7 @@ TEST_CASE("goal_form_state_from copies the goal") {
 
 TEST_CASE("goal form renders and saves on enter") {
     std::optional<Goal> saved;
-    auto form = make_goal_form("New goal", Goal{}, [&](Goal g) { saved = g; }, [] {});
+    auto form = make_goal_form("New goal", Goal{}, routines(), [&](Goal g) { saved = g; }, [] {});
     auto out = render(form);
     for (auto s : {"New goal", "Title", "e.g. go to the gym", "e.g. 💪", "Symbol", "Days", "Mo",
                    "Su", "Save", "Cancel"}) {
@@ -78,7 +93,7 @@ TEST_CASE("goal form renders and saves on enter") {
 
 TEST_CASE("goal form shows validation errors and cancels on escape") {
     bool cancelled = false;
-    auto form = make_goal_form("New goal", Goal{}, [](Goal) {}, [&] { cancelled = true; });
+    auto form = make_goal_form("New goal", Goal{}, routines(), [](Goal) {}, [&] { cancelled = true; });
     form->OnEvent(ftxui::Event::Return);
     CHECK(contains(render(form), "Title must not be empty"));
     form->OnEvent(ftxui::Event::Escape);
@@ -89,11 +104,34 @@ TEST_CASE("goal form saves the symbol on enter") {
     std::optional<Goal> saved;
     Goal initial;
     initial.title = "Gym";
-    auto form = make_goal_form("Edit goal", initial, [&](Goal g) { saved = g; }, [] {});
+    auto form = make_goal_form("Edit goal", initial, routines(), [&](Goal g) { saved = g; }, [] {});
     form->OnEvent(ftxui::Event::Tab); // Title -> Symbol
     form->OnEvent(ftxui::Event::Character("💪"));
     form->OnEvent(ftxui::Event::Return);
     REQUIRE(saved);
     CHECK(saved->title == "Gym");
     CHECK(saved->symbol == "💪");
+}
+
+TEST_CASE("the habit form picks the routine") {
+    Goal g;
+    g.title = "Pray";
+    g.routine_id = "night";
+    auto s = goal_form_state_from(g, routines());
+    CHECK(s.routine == 1);
+    s.routine = 0;
+    CHECK(std::get<Goal>(apply_goal_form(s, g, routines())).routine_id == "morning");
+    CHECK(goal_form_state_from(Goal{}, routines()).routine == 0); // unknown: the first one
+
+    auto out = render(make_goal_form("Edit habit", g, routines(), [](Goal) {}, [] {}));
+    for (auto text : {"Edit habit", "Routine", "Morning routine", "Night routine"}) {
+        INFO(text);
+        CHECK(contains(out, text));
+    }
+}
+
+TEST_CASE("a habit needs a routine") {
+    GoalFormState s;
+    s.title = "Pray";
+    CHECK(std::get<std::string>(apply_goal_form(s, Goal{}, {})) == "Create a routine first");
 }

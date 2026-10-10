@@ -14,11 +14,15 @@ namespace ortha {
 
 using namespace ftxui;
 
-GoalFormState goal_form_state_from(const Goal& goal) {
-    return {goal.title, goal.weekdays, goal.symbol};
+GoalFormState goal_form_state_from(const Goal& goal, const std::vector<Routine>& routines) {
+    const auto it = std::find_if(routines.begin(), routines.end(),
+                                 [&goal](const Routine& r) { return r.id == goal.routine_id; });
+    const int routine = it == routines.end() ? 0 : static_cast<int>(it - routines.begin());
+    return {goal.title, goal.weekdays, goal.symbol, routine};
 }
 
-std::variant<Goal, std::string> apply_goal_form(const GoalFormState& state, Goal base) {
+std::variant<Goal, std::string> apply_goal_form(const GoalFormState& state, Goal base,
+                                                const std::vector<Routine>& routines) {
     auto title = trim(state.title);
     if (title.empty())
         return std::string("Title must not be empty");
@@ -27,29 +31,38 @@ std::variant<Goal, std::string> apply_goal_form(const GoalFormState& state, Goal
     auto symbol = trim(state.symbol);
     if (ftxui::string_width(symbol) > kMaxSymbolWidth)
         return std::string("Symbol is too wide (max. 2 emoji or 4 characters)");
+    if (routines.empty())
+        return std::string("Create a routine first");
+    const auto index = std::clamp(state.routine, 0, static_cast<int>(routines.size()) - 1);
+    base.routine_id = routines[static_cast<std::size_t>(index)].id;
     base.title = std::move(title);
     base.symbol = std::move(symbol);
     base.weekdays = state.weekdays;
     return base;
 }
 
-Component make_goal_form(std::string heading, Goal initial, std::function<void(Goal)> on_save,
-                         std::function<void()> on_cancel) {
+Component make_goal_form(std::string heading, Goal initial, std::vector<Routine> routines,
+                         std::function<void(Goal)> on_save, std::function<void()> on_cancel) {
     struct Model {
         Goal base;
+        std::vector<Routine> routines;
+        std::vector<std::string> routine_names;
         GoalFormState form;
         std::string error;
         int title_cursor = 0;
         int symbol_cursor = 0;
     };
     auto model = std::make_shared<Model>();
-    model->form = goal_form_state_from(initial);
+    model->form = goal_form_state_from(initial, routines);
     model->base = std::move(initial);
+    for (const auto& routine : routines)
+        model->routine_names.push_back(routine.name);
+    model->routines = std::move(routines);
     model->title_cursor = static_cast<int>(model->form.title.size());
     model->symbol_cursor = static_cast<int>(model->form.symbol.size());
 
     auto save = [model, on_save] {
-        auto result = apply_goal_form(model->form, model->base);
+        auto result = apply_goal_form(model->form, model->base, model->routines);
         if (auto* error = std::get_if<std::string>(&result)) {
             model->error = *error;
             return;
@@ -74,6 +87,8 @@ Component make_goal_form(std::string heading, Goal initial, std::function<void(G
     symbol_option.on_enter = save;
     auto symbol = Input(symbol_option);
 
+    auto routine = Toggle(&model->routine_names, &model->form.routine);
+
     Components day_boxes;
     for (std::size_t i = 0; i < 7; ++i)
         day_boxes.push_back(Checkbox(kWeekdayNames[i], &model->form.weekdays[i]));
@@ -84,6 +99,7 @@ Component make_goal_form(std::string heading, Goal initial, std::function<void(G
     auto layout = Container::Vertical({
         title,
         symbol,
+        routine,
         days,
         Container::Horizontal({save_button, cancel_button}),
     });
@@ -97,6 +113,7 @@ Component make_goal_form(std::string heading, Goal initial, std::function<void(G
         Elements rows = {
             hbox({text("Title") | size(WIDTH, EQUAL, 10), title->Render() | flex}),
             hbox({text("Symbol") | size(WIDTH, EQUAL, 10), symbol->Render() | flex}),
+            hbox({text("Routine") | size(WIDTH, EQUAL, 10), routine->Render()}),
             hbox({text("Days") | size(WIDTH, EQUAL, 10), hbox(std::move(boxes))}),
             separator(),
             hbox({save_button->Render(), text("  "), cancel_button->Render()}),

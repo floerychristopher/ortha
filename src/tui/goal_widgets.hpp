@@ -6,6 +6,8 @@
 #include <ftxui/dom/elements.hpp>
 #include <ftxui/screen/string.hpp>
 
+#include <format>
+#include <optional>
 #include <string>
 
 namespace ortha {
@@ -27,7 +29,7 @@ inline std::string goal_symbol(const Goal& goal) {
     return trim(symbol);
 }
 
-// "[ ]", "[✓]" (green) or "[✗]" (red).
+// "[ ]", "[✓]" (green), "[✗]" (red) or "[·]" (dim: rest day, not planned today).
 inline ftxui::Element goal_status_box(GoalStatus status) {
     using namespace ftxui;
     switch (status) {
@@ -35,9 +37,41 @@ inline ftxui::Element goal_status_box(GoalStatus status) {
         return text("[✓]") | color(Color::Green);
     case GoalStatus::Missed:
         return text("[✗]") | color(Color::Red);
-    default:
-        return text("[ ]");
+    case GoalStatus::Skipped:
+        return text("[·]") | dim;
+    case GoalStatus::Open:
+        break;
     }
+    return text("[ ]");
+}
+
+// One character for a day: "✓" (green), "✗" (red), "○" open, "·" (dim) not planned —
+// also for a rest day (Skipped) and for nullopt.
+inline ftxui::Element status_mark(std::optional<GoalStatus> status) {
+    using namespace ftxui;
+    switch (status.value_or(GoalStatus::Skipped)) {
+    case GoalStatus::Done:
+        return text("✓") | color(Color::Green);
+    case GoalStatus::Missed:
+        return text("✗") | color(Color::Red);
+    case GoalStatus::Open:
+        return text("○");
+    case GoalStatus::Skipped:
+        break;
+    }
+    return text("·") | dim;
+}
+
+// "🔥 N", right-aligned in `width` columns; empty without a streak.
+inline ftxui::Element streak_label(int streak, int width) {
+    using namespace ftxui;
+    return hbox({filler(), text(streak > 0 ? std::format("🔥 {}", streak) : "")}) |
+           size(WIDTH, EQUAL, width);
+}
+
+// How a habit is listed: "🙏 Pray", or just "Pray" without a symbol.
+inline std::string habit_label(const Goal& goal) {
+    return goal.symbol.empty() ? goal.title : goal.symbol + " " + goal.title;
 }
 
 } // namespace ortha

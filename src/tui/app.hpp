@@ -2,6 +2,7 @@
 
 #include "core/bible_verses.hpp"
 #include "core/goal_repository.hpp"
+#include "core/routine_repository.hpp"
 #include "core/task_repository.hpp"
 #include "core/task_service.hpp"
 #include "tui/home_view.hpp"
@@ -11,6 +12,8 @@
 #include <ftxui/component/screen_interactive.hpp>
 
 #include <functional>
+#include <map>
+#include <memory>
 #include <optional>
 #include <string>
 
@@ -19,7 +22,8 @@ namespace ortha {
 // Owns the terminal screen and switches between the views (menu, lists, form).
 class App {
   public:
-    App(TaskRepository& repo, TaskService& service, GoalRepository& goals);
+    App(TaskRepository& repo, TaskService& service, GoalRepository& goals,
+        RoutineRepository& routines);
     // Runs until the user quits. Throws if an operation failed (after restoring the terminal).
     void run();
 
@@ -32,22 +36,29 @@ class App {
     ftxui::Component home();
     // Everything the start screen shows except the verse.
     HomeOptions home_options();
+    // The routines opened or closed by hand on Today, for the current routine day.
+    std::shared_ptr<std::map<std::string, bool>> expanded_today();
     // Opens the task form: empty id = new task, otherwise edit. `back` runs after save/cancel.
     void show_form(std::optional<std::string> task_id, std::function<void()> back);
     void show_all();
     // Task actions (edit, toggle, delete) shared by the views; `back` re-opens the
     // calling view after editing.
     TaskListCallbacks task_callbacks(std::function<void()> back);
-    // Goals overview, goal form (empty id = new goal), a goal's history and the month grid.
-    void show_goals();
-    void show_goal_form(std::optional<std::string> goal_id);
+    // Routines with their habits, the routine form (empty id = new routine), the habit form
+    // (empty id = new habit in `routine_id`), a habit's history and the month grid.
+    void show_routines();
+    void show_routine_form(std::optional<std::string> routine_id);
+    void show_goal_form(std::optional<std::string> goal_id, std::string routine_id = {});
     void show_goal_history(const std::string& goal_id);
     void show_goal_month();
 
     TaskRepository& repo_;
     TaskService& service_;
     GoalRepository& goals_;
+    RoutineRepository& routines_;
     std::optional<BibleVerse> verse_; // picked once per start (if one fits), shown on Today
+    std::shared_ptr<std::map<std::string, bool>> expanded_;
+    Date expanded_day_{};
     ftxui::ScreenInteractive screen_ = ftxui::ScreenInteractive::Fullscreen();
     ftxui::Component root_ = ftxui::Container::Vertical({});
     std::string error_; // set when an operation failed; reported after the UI is closed

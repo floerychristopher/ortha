@@ -164,3 +164,21 @@ TEST_CASE("column symbols stay visible when the grid scrolls") {
     INFO(out);
     CHECK(contains(line_with(out, "💪"), "Read")); // ... and the header row is still there
 }
+
+TEST_CASE("rest days show as · and can still be changed") {
+    Calls calls;
+    auto view = make_goal_month(
+        [](year_month) {
+            auto columns = two_columns();
+            columns[0].entries[kToday] = GoalStatus::Skipped; // Gym, Wednesday
+            return columns;
+        },
+        kToday, [&](const std::string& id, Date day) { calls.cycled.emplace_back(id, day); },
+        [] {});
+    auto line = line_with(render(view, 80, 50), "We 07");
+    CHECK(contains(line, "·"));
+    CHECK_FALSE(contains(line, "✗"));
+    view->OnEvent(ftxui::Event::Return); // the cursor starts on Gym / today
+    REQUIRE(calls.cycled.size() == 1);
+    CHECK(calls.cycled[0] == std::pair<std::string, Date>{"g1", kToday});
+}

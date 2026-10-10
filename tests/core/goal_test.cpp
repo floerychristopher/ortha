@@ -34,6 +34,7 @@ StatusLookup lookup(std::map<Date, GoalStatus> entries) {
 constexpr auto Done = GoalStatus::Done;
 constexpr auto Missed = GoalStatus::Missed;
 constexpr auto Open = GoalStatus::Open;
+constexpr auto Skipped = GoalStatus::Skipped;
 
 } // namespace
 
@@ -49,7 +50,8 @@ TEST_CASE("is_scheduled respects weekdays and start date") {
 TEST_CASE("next_status cycles") {
     CHECK(next_status(Open) == Done);
     CHECK(next_status(Done) == Missed);
-    CHECK(next_status(Missed) == Open);
+    CHECK(next_status(Missed) == Skipped);
+    CHECK(next_status(Skipped) == Open);
 }
 
 TEST_CASE("streak counts consecutive done days") {
@@ -64,14 +66,67 @@ TEST_CASE("streak counts consecutive done days") {
     with_today[today] = Done;
     CHECK(streak(g, today, lookup(with_today)) == 4);
     with_today[today] = Missed;
-    CHECK(streak(g, today, lookup(with_today)) == 0);
+    CHECK(streak(g, today, lookup(with_today)) == 3); // one miss does not break the chain
 
+    // An unrated past day is a miss too, but a single one is bridged.
     CHECK(streak(g, today,
-                 lookup({{2026y / October / 6d, Done}, {2026y / October / 4d, Done}})) == 1);
+                 lookup({{2026y / October / 6d, Done}, {2026y / October / 4d, Done}})) == 2);
     CHECK(streak(g, today,
                  lookup({{2026y / October / 6d, Done},
                          {2026y / October / 5d, Missed},
-                         {2026y / October / 4d, Done}})) == 1);
+                         {2026y / October / 4d, Done}})) == 2);
+}
+
+TEST_CASE("two misses in a row end the streak") {
+    auto g = daily(2026y / October / 1d);
+    const Date today = 2026y / October / 7d;
+    CHECK(streak(g, today,
+                 lookup({{2026y / October / 6d, Missed},
+                         {2026y / October / 5d, Missed},
+                         {2026y / October / 4d, Done},
+                         {2026y / October / 3d, Done}})) == 0);
+    CHECK(streak(g, today,
+                 lookup({{2026y / October / 6d, Done},
+                         {2026y / October / 5d, Missed},
+                         {2026y / October / 4d, Missed},
+                         {2026y / October / 3d, Done}})) == 1);
+    CHECK(streak(g, today, lookup({{today, Missed}, {2026y / October / 6d, Missed},
+                                   {2026y / October / 5d, Done}})) == 0);
+}
+
+TEST_CASE("skipped days neither count nor break") {
+    auto g = daily(2026y / October / 1d);
+    const Date today = 2026y / October / 7d;
+    // skipped is passed over, so the miss on the 5th is followed by the done on the 4th
+    CHECK(streak(g, today,
+                 lookup({{2026y / October / 6d, Skipped},
+                         {2026y / October / 5d, Missed},
+                         {2026y / October / 4d, Done},
+                         {2026y / October / 3d, Missed},
+                         {2026y / October / 2d, Missed}})) == 1);
+    CHECK(streak(g, today, lookup({{2026y / October / 6d, Skipped}, {2026y / October / 5d, Done},
+                                   {2026y / October / 4d, Missed},
+                                   {2026y / October / 3d, Missed}})) == 1);
+    CHECK(streak(g, today, lookup({{today, Skipped}, {2026y / October / 6d, Done},
+                                   {2026y / October / 5d, Missed},
+                                   {2026y / October / 4d, Missed}})) == 1);
+}
+
+TEST_CASE("missed_last_time looks at the last planned day") {
+    const Date today = 2026y / October / 7d; // Wednesday
+    auto g = daily(2026y / October / 1d);
+    CHECK(missed_last_time(g, today, lookup({{2026y / October / 6d, Missed}})));
+    CHECK(missed_last_time(g, today, lookup({}))); // yesterday left unrated
+    CHECK_FALSE(missed_last_time(g, today, lookup({{2026y / October / 6d, Done}})));
+    CHECK_FALSE(missed_last_time(
+        g, today, lookup({{today, Done}, {2026y / October / 6d, Missed}}))); // today rated
+    CHECK(missed_last_time(
+        g, today, lookup({{2026y / October / 6d, Skipped}, {2026y / October / 5d, Missed}})));
+
+    auto gym = mwf(2026y / September / 28d);
+    CHECK(missed_last_time(gym, today, lookup({}))); // Monday unrated, Tuesday not planned
+    CHECK_FALSE(missed_last_time(gym, today, lookup({{2026y / October / 5d, Done}})));
+    CHECK_FALSE(missed_last_time(daily(today), today, lookup({}))); // nothing before today
 }
 
 TEST_CASE("streak skips unscheduled days") {
@@ -150,4 +205,43 @@ TEST_CASE("month_cell") {
     CHECK(month_cell(g, today, today, GoalStatus::Open) == CellState::Open);
     CHECK(month_cell(g, 2026y / October / 5d, today, GoalStatus::Done) == CellState::Done);
     CHECK(month_cell(g, today, today, GoalStatus::Missed) == CellState::Missed);
+}
+
+TEST_CASE("month_cell shows skipped days") {
+    const Date today = 2026y / October / 7d;
+    auto g = mwf(2026y / October / 5d);
+    CHECK(month_cell(g, 2026y / October / 5d, today, Skipped) == CellState::Skipped);
+    CHECK(month_cell(g, 2026y / October / 9d, today, Skipped) == CellState::Skipped); // future
+    CHECK(month_cell(g, 2026y / October / 6d, today, Skipped) ==
+          CellState::NotScheduled); // Tuesday: not planned anyway
+}
+
+TEST_CASE("status_on: days without an entry are open") {
+    const std::map<Date, GoalStatus> entries{{2026y / October / 6d, Done}};
+    CHECK(status_on(entries, 2026y / October / 6d) == Done);
+    CHECK(status_on(entries, 2026y / October / 7d) == Open);
+}
+
+TEST_CASE("chain_length bridges one miss, two end the chain") {
+    using enum DayRating;
+    std::map<Date, DayRating> days{{2026y / October / 7d, Pass}, {2026y / October / 6d, Done},
+                                   {2026y / October / 5d, Miss}, {2026y / October / 4d, Done},
+                                   {2026y / October / 3d, Miss}, {2026y / October / 2d, Miss},
+                                   {2026y / October / 1d, Done}};
+    auto rate = [&](Date d) { return days.at(d); };
+    CHECK(chain_length(2026y / October / 7d, 2026y / October / 1d, rate) == 2);
+    CHECK(chain_length(2026y / October / 7d, 2026y / October / 4d, rate) == 2); // stops at first
+    CHECK(chain_length(2026y / October / 1d, 2026y / October / 1d, rate) == 1);
+}
+
+TEST_CASE("summarize combines today, streak, last week and the hint") {
+    auto g = daily(2026y / October / 1d);
+    g.id = "g";
+    const Date today = 2026y / October / 7d;
+    auto s = summarize(g, today, lookup({{2026y / October / 5d, Done}, {2026y / October / 6d, Missed}}));
+    CHECK(s.goal.id == "g");
+    CHECK(s.today == Open);
+    CHECK(s.streak == 1);
+    CHECK(s.last_week[5] == Missed);
+    CHECK(s.missed_last_time);
 }

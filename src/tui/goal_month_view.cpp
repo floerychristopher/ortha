@@ -37,17 +37,20 @@ Element column(Element content) {
 
 Element cell_mark(CellState state) {
     switch (state) {
+    case CellState::Future:
+        return text("");
     case CellState::NotScheduled:
-        return text("·") | dim;
+        return status_mark(std::nullopt);
     case CellState::Open:
-        return text("○");
+        return status_mark(GoalStatus::Open);
     case CellState::Done:
-        return text("✓") | color(Color::Green);
+        return status_mark(GoalStatus::Done);
     case CellState::Missed:
-        return text("✗") | color(Color::Red);
-    default:
-        return text(""); // Future
+        return status_mark(GoalStatus::Missed);
+    case CellState::Skipped:
+        return status_mark(GoalStatus::Skipped);
     }
+    return text("");
 }
 
 class GoalMonthView : public ComponentBase {
@@ -117,9 +120,7 @@ class GoalMonthView : public ComponentBase {
 
     CellState cell(std::size_t col, Date day) const {
         const auto& column = columns_[col];
-        const auto it = column.entries.find(day);
-        const auto status = it == column.entries.end() ? GoalStatus::Open : it->second;
-        return month_cell(column.goal, day, today_, status);
+        return month_cell(column.goal, day, today_, status_on(column.entries, day));
     }
 
     void cycle_focused() {

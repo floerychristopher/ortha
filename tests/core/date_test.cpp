@@ -52,3 +52,25 @@ TEST_CASE("due_label says today and tomorrow, otherwise the date with its weekda
     CHECK(due_label(2026y / October / 6d, today) == "06.10.2026 (Tu)"); // overdue keeps the date
     CHECK(due_label(2026y / November / 1d, 2026y / October / 31d) == "tomorrow");
 }
+
+TEST_CASE("now_minutes is a time of day") {
+    const int now = now_minutes();
+    CHECK(now >= 0);
+    CHECK(now < 24 * 60);
+}
+
+TEST_CASE("previous_day crosses month and year") {
+    CHECK(previous_day(2026y / October / 7d) == Date{2026y, October, 6d});
+    CHECK(previous_day(2026y / March / 1d) == Date{2026y, February, 28d});
+    CHECK(previous_day(2027y / January / 1d) == Date{2026y, December, 31d});
+}
+
+TEST_CASE("routine days start at 4:00") {
+    CHECK(kDayStart == 4 * 60);
+    CHECK(routine_minutes(4 * 60) == 0);
+    CHECK(routine_minutes(23 * 60 + 30) == 19 * 60 + 30);
+    CHECK(routine_minutes(30) == 20 * 60 + 30); // 0:30 belongs to the end of the day
+    CHECK(routine_minutes(3 * 60 + 59) == 24 * 60 - 1);
+    CHECK(habit_day(2026y / October / 11d, 2 * 60) == Date{2026y, October, 10d}); // 2:00
+    CHECK(habit_day(2026y / October / 11d, 4 * 60) == Date{2026y, October, 11d}); // 4:00
+}

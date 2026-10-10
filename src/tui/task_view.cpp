@@ -145,10 +145,16 @@ bool TaskView::OnEvent(Event event) {
     const int before = focus_area_;
     const bool handled = ComponentBase::OnEvent(event);
     // Entering the rows from below lands on the last row, from above on the first one.
-    if (focus_area_ == static_cast<int>(Area::Rows) && before != focus_area_ && !tasks_.empty())
+    // Only for the keyboard: a click selects exactly the line that was clicked.
+    const bool keyboard = !event.is_mouse();
+    if (keyboard && focus_area_ == static_cast<int>(Area::Rows) && before != focus_area_ &&
+        !tasks_.empty())
         selected_row_ = before == static_cast<int>(Area::Footer)
                             ? static_cast<int>(tasks_.size()) - 1
                             : 0;
+    // The same for the header (e.g. Today's routines): from below, its last line.
+    if (keyboard && focus_area_ == static_cast<int>(Area::Header) && before > focus_area_)
+        header_->OnEvent(Event::End);
     return handled;
 }
 

@@ -1,5 +1,6 @@
 #include "core/goal_repository.hpp"
 #include "core/paths.hpp"
+#include "core/routine_repository.hpp"
 #include "core/sqlite.hpp"
 #include "core/task_repository.hpp"
 #include "core/task_service.hpp"
@@ -21,7 +22,8 @@ int main() {
         ortha::TaskRepository repo(db);
         ortha::TaskService service(repo);
         ortha::GoalRepository goals(db);
-        ortha::App app(repo, service, goals);
+        ortha::RoutineRepository routines(db);
+        ortha::App app(repo, service, goals, routines);
         app.run();
         return 0;
     } catch (const std::exception& e) {

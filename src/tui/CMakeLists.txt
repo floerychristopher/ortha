@@ -6,7 +6,8 @@ add_library(ortha_tui STATIC
     home_view.cpp
     error_guard.cpp
     goal_form.cpp
-    goals_view.cpp
+    routine_form.cpp
+    routines_view.cpp
     goal_history_view.cpp
     goal_month_view.cpp
     app.cpp

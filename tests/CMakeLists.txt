@@ -7,6 +7,8 @@ add_executable(ortha_tests
     core/schema_test.cpp
     core/recurrence_test.cpp
     core/goal_test.cpp
+    core/routine_test.cpp
+    core/routine_repository_test.cpp
     core/bible_verses_test.cpp
     core/goal_repository_test.cpp
     core/task_repository_test.cpp
@@ -18,7 +20,9 @@ add_executable(ortha_tests
     tui/home_view_test.cpp
     tui/error_guard_test.cpp
     tui/goal_form_test.cpp
-    tui/goals_view_test.cpp
+    tui/routine_form_test.cpp
+    tui/routines_view_test.cpp
+    tui/routine_lines_test.cpp
     tui/goal_history_view_test.cpp
     tui/goal_widgets_test.cpp
     tui/goal_month_view_test.cpp

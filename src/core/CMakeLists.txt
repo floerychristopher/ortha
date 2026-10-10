@@ -5,6 +5,8 @@ add_library(ortha_core STATIC
     schema.cpp
     recurrence.cpp
     goal.cpp
+    routine.cpp
+    routine_repository.cpp
     goal_repository.cpp
     bible_verses.cpp
     task.cpp

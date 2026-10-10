@@ -60,3 +60,10 @@ TEST_CASE("history without scheduled days shows a placeholder") {
     CHECK(contains(out, "no days yet."));
     CHECK_FALSE(contains(out, "Empty container"));
 }
+
+TEST_CASE("history shows rest days as [·]") {
+    auto view = make_goal_history(
+        "Gym", [] { return std::vector<HistoryDay>{{2026y / October / 7d, GoalStatus::Skipped}}; },
+        [](Date) {}, [] {});
+    CHECK(contains(line_with(render(view), "We 07.10.2026"), "[·]"));
+}
