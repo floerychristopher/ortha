@@ -1,5 +1,7 @@
 # ortha – Goals (Tagesziele) – Design-Spec
 
+> **Abgelöst** durch `2026-10-10-routines-design.md`: Goals sind jetzt Habits in Routinen, der Streak folgt „never miss twice“, der Menüpunkt heißt „Routines“.
+
 ## Kontext
 
 Neben konkreten Tasks („Mathe Hausübung machen“) will der Nutzer **Tagesziele** im Stil eines Habit-Trackers: „Ins Gym gehen“, „4h lernen“. Ein Ziel gilt an bestimmten Wochentagen jeweils neu; am Abend wird bewertet, ob es geschafft wurde. Ziele sind eine **eigene Art von Eintrag** – sie erscheinen nicht in All tasks und belegen keine Today-Task-Plätze.
