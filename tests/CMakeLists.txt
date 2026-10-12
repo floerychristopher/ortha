@@ -33,3 +33,17 @@ target_link_libraries(ortha_tests PRIVATE ortha_tui Catch2::Catch2WithMain)
 ortha_set_warnings(ortha_tests)
 
 catch_discover_tests(ortha_tests)
+
+# The program itself: --version and unknown options must answer before any database or UI.
+# ORTHA_DB points below a file, so an accidental database access fails loudly.
+set(ortha_no_db "ORTHA_DB=${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt/ortha.db")
+string(REPLACE "." "\\." version_regex "${PROJECT_VERSION}")
+add_test(NAME ortha_version
+         COMMAND ${CMAKE_COMMAND} -DORTHA=$<TARGET_FILE:ortha> -DARG=--version -DRC=0
+                 "-DSTDOUT=^ortha ${version_regex}\r?\n$" "-DSTDERR=^$"
+                 -P ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_ortha.cmake)
+add_test(NAME ortha_unknown_option
+         COMMAND ${CMAKE_COMMAND} -DORTHA=$<TARGET_FILE:ortha> -DARG=--nope -DRC=2
+                 "-DSTDOUT=^$" "-DSTDERR=ortha: unknown option '--nope'"
+                 -P ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_ortha.cmake)
+set_tests_properties(ortha_version ortha_unknown_option PROPERTIES ENVIRONMENT "${ortha_no_db}")

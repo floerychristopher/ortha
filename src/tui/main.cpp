@@ -4,6 +4,7 @@
 #include "core/sqlite.hpp"
 #include "core/task_repository.hpp"
 #include "core/task_service.hpp"
+#include "core/version.hpp"
 #include "tui/app.hpp"
 
 #include <exception>
@@ -11,7 +12,17 @@
 #include <iostream>
 #include <string>
 
-int main() {
+int main(int argc, char** argv) {
+    // Options are answered before any database or UI is touched.
+    if (argc > 1) {
+        const std::string option = argv[1];
+        if (option == "--version") {
+            std::cout << "ortha " << ortha::kVersion << '\n';
+            return 0;
+        }
+        std::cerr << "ortha: unknown option '" << option << "'\n";
+        return 2;
+    }
     try {
         const auto path = ortha::default_db_path();
         if (path.has_parent_path())
