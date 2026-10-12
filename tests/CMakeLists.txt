@@ -23,6 +23,7 @@ add_executable(ortha_tests
     tui/routine_form_test.cpp
     tui/routines_view_test.cpp
     tui/routine_lines_test.cpp
+    test_names_test.cpp
     tui/goal_history_view_test.cpp
     tui/goal_widgets_test.cpp
     tui/goal_month_view_test.cpp

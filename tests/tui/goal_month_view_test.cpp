@@ -165,7 +165,7 @@ TEST_CASE("column symbols stay visible when the grid scrolls") {
     CHECK(contains(line_with(out, "💪"), "Read")); // ... and the header row is still there
 }
 
-TEST_CASE("rest days show as · and can still be changed") {
+TEST_CASE("rest days show as a dot and can still be changed") {
     Calls calls;
     auto view = make_goal_month(
         [](year_month) {
