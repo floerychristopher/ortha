@@ -4,7 +4,7 @@
   "homepage": "https://github.com/floerychristopher/ortha",
   "license": "Proprietary",
   "url": "https://github.com/floerychristopher/ortha/releases/download/v0.2.0/ortha-0.2.0-windows-x64.zip",
-  "hash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "hash": "dbc0e7e13b933a4928c53f3872d271c2a6f8187e0faf05a813f8c8fe896ce696",
   "bin": "ortha.exe",
   "checkver": "github",
   "autoupdate": {
