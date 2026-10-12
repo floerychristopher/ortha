@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "description": "A minimal terminal to-do and habit tracker",
+  "homepage": "https://github.com/floerychristopher/ortha",
+  "license": "Proprietary",
+  "url": "https://github.com/floerychristopher/ortha/releases/download/v0.2.0/ortha-0.2.0-windows-x64.zip",
+  "hash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "bin": "ortha.exe",
+  "checkver": "github",
+  "autoupdate": {
+    "url": "https://github.com/floerychristopher/ortha/releases/download/v$version/ortha-$version-windows-x64.zip"
+  }
+}

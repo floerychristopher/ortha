@@ -47,3 +47,9 @@ add_test(NAME ortha_unknown_option
                  "-DSTDOUT=^$" "-DSTDERR=ortha: unknown option '--nope'"
                  -P ${CMAKE_CURRENT_SOURCE_DIR}/scripts/run_ortha.cmake)
 set_tests_properties(ortha_version ortha_unknown_option PROPERTIES ENVIRONMENT "${ortha_no_db}")
+
+# Release scripts and the Scoop manifest (Bash + Python; not run on Windows).
+if(NOT WIN32)
+    add_test(NAME release_scripts
+             COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/test_release_scripts.sh ${PROJECT_SOURCE_DIR})
+endif()

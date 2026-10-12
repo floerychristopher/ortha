@@ -1,0 +1,141 @@
+name: Release
+
+# Pushing a tag v<version> (matching CMakeLists.txt) builds ortha for Windows and Linux,
+# publishes a GitHub release and updates the Scoop manifest in bucket/ortha.json.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  check-version:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Tag matches the project version
+        id: version
+        # its own command, so a mismatch stops the step (inside echo "$(...)" it would not)
+        run: |
+          version=$(scripts/check-tag-version.sh "$GITHUB_REF_NAME")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: check-version
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            platform: linux-x64
+          - os: windows-latest
+            platform: windows-x64
+    runs-on: ${{ matrix.os }}
+    env:
+      VERSION: ${{ needs.check-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Ninja (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y ninja-build
+
+      - name: Set up MSVC (Windows)
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+        env:
+          CXX: ${{ runner.os == 'Linux' && 'g++-14' || 'cl' }}
+          CC: ${{ runner.os == 'Linux' && 'gcc-14' || 'cl' }}
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure -C Release
+
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: Compress-Archive -Path build/src/tui/ortha.exe -DestinationPath "ortha-$env:VERSION-windows-x64.zip"
+
+      - name: Package (Linux)
+        if: runner.os == 'Linux'
+        run: tar -czf "ortha-$VERSION-linux-x64.tar.gz" -C build/src/tui ortha
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ortha-${{ matrix.platform }}
+          path: ortha-${{ env.VERSION }}-${{ matrix.platform }}.*
+          if-no-files-found: error
+
+  release:
+    needs: [check-version, build]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    outputs:
+      windows-sha256: ${{ steps.hash.outputs.sha256 }}
+    env:
+      VERSION: ${{ needs.check-version.outputs.version }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Checksums
+        id: hash
+        working-directory: dist
+        run: |
+          sha256sum ortha-* > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+          sha256=$(sha256sum "ortha-$VERSION-windows-x64.zip" | cut -d ' ' -f 1)
+          echo "sha256=$sha256" >> "$GITHUB_OUTPUT"
+
+      - name: Create the release
+        # when the whole workflow is run again, replace the files of the existing release
+        run: |
+          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --clobber \
+              dist/ortha-* dist/SHA256SUMS.txt
+          else
+            gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
+              --title "ortha $VERSION" --generate-notes dist/ortha-* dist/SHA256SUMS.txt
+          fi
+
+  scoop:
+    needs: [check-version, release]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ needs.check-version.outputs.version }}
+      SHA256: ${{ needs.release.outputs.windows-sha256 }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Update the Scoop manifest
+        run: scripts/update-scoop-manifest.py bucket/ortha.json "$VERSION" "$SHA256"
+
+      - name: Commit and push
+        run: |
+          if git diff --quiet bucket/ortha.json; then
+            echo "The manifest is already up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add bucket/ortha.json
+          git commit -m "chore(scoop): ortha $VERSION"
+          # main may have moved on since the tag; rebase once and try again
+          git push origin HEAD:main || { git pull --rebase origin main && git push origin HEAD:main; }
