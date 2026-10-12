@@ -47,10 +47,35 @@ get up → drink water → make the bed → pray. Each step cues the next one.
   PgUp/PgDn switch the month.
 - Goals from older ortha versions move into a routine called "My routine" on the first start.
 
+## Install on Windows
+
+ortha comes as a ready-made `ortha.exe` – no compiler needed. The easiest way to install and
+update it is [Scoop](https://scoop.sh):
+
+1. Install Scoop (once): open PowerShell and follow the two commands on https://scoop.sh.
+2. Add ortha and install it (Scoop needs git to add a bucket):
+
+   ```powershell
+   scoop install git
+   scoop bucket add ortha https://github.com/floerychristopher/ortha
+   scoop install ortha
+   ```
+
+3. Start it with `ortha`, preferably in **Windows Terminal** (the default on Windows 11; the old
+   console shows emoji and frames poorly).
+
+Updates: `scoop update` (refreshes the buckets), then `scoop update ortha`. `scoop status`
+tells you when a new version is available. Your data stays where it is (see [Data](#data)).
+
+Without Scoop: download `ortha-<version>-windows-x64.zip` from the
+[releases](https://github.com/floerychristopher/ortha/releases), unzip it and run `ortha.exe`.
+The exe is not signed, so Windows SmartScreen may ask first: *More info* → *Run anyway*.
+
 ## Usage
 
 ```sh
-ortha
+ortha            # start
+ortha --version  # print the version
 ```
 
 | Key | Action |
@@ -65,6 +90,7 @@ ortha
 
 Requirements: a C++20 compiler (GCC 14+ or Visual Studio 2022), CMake 3.25+, Ninja.
 All libraries (FTXUI, SQLite, Catch2) are downloaded automatically by CMake.
+The C++ runtime is linked statically; on Fedora this needs `libstdc++-static`.
 
 ```sh
 cmake -S . -B build -G Ninja
@@ -75,6 +101,22 @@ ctest --test-dir build --output-on-failure
 
 On Windows, run the same commands from a *Developer PowerShell for VS 2022*
 (it provides the compiler and Ninja).
+
+## Releasing
+
+1. Raise the version in `CMakeLists.txt` (`project(ortha VERSION x.y.z ...)`) and commit.
+2. Tag (annotated, so `--follow-tags` pushes it) and push:
+
+   ```sh
+   git tag -a vx.y.z -m "ortha x.y.z"
+   git push --follow-tags
+   ```
+
+GitHub then builds and tests ortha for Windows and Linux, publishes the release with
+`ortha-x.y.z-windows-x64.zip`, `ortha-x.y.z-linux-x64.tar.gz` and `SHA256SUMS.txt`, and
+updates the Scoop manifest (`bucket/ortha.json`) with a commit on `main` – fetch it with
+`git pull`. A tag that doesn't match the version in `CMakeLists.txt` stops the release.
+The manifest always follows the latest tag pushed – tagging an older version moves Scoop back.
 
 ## Data
 
