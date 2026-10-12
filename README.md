@@ -8,8 +8,10 @@ A simple, keyboard-driven to-do app for the terminal. Runs on Linux and Windows.
   with the menu below: *New task*, *All tasks (N open)*, *Routines*, *Quit*.
   At the very bottom: a bible verse (Luther 1912), picked at random on every start.
 - Due dates read `today`, `tomorrow` or e.g. `12.10.2026 (Mo)`; overdue in red, today in yellow.
-- **All tasks**: every open task with its notes, sorted by due date and priority; done tasks can
-  be shown with *Show done*
+- **All tasks**: every open task with its subtasks and notes, sorted by due date and priority;
+  done tasks can be shown with *Show done*
+- Subtasks are listed below their task – open in *All tasks*, closed on *Today*. Enter on a task
+  offers *Show subtasks* / *Hide subtasks*; Enter on a subtask ticks it.
 - Tasks have a title, due date (`DD.MM.YYYY`), priority, tags, notes and a checklist of subtasks
 - Repeating tasks: daily, weekly (on chosen weekdays), monthly or yearly, every N intervals,
   counted from the due date or from the day you complete it.
