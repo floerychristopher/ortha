@@ -22,6 +22,7 @@ Component make_task_list(std::string heading, std::function<std::vector<Task>(bo
         .today = today,
         .callbacks = callbacks,
         .show_notes = true,
+        .subtasks_open = true,
     });
 
     // The toolbar lives inside the view, so capturing the raw pointer is safe.

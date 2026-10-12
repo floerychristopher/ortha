@@ -467,3 +467,27 @@ TEST_CASE("open/close choices end with the routine day") {
     home->OnEvent(ftxui::Event::Return);  // any reload picks up the new day's choices
     CHECK(contains(render(home, 80, 30), "Deep work")); // Focus opens on its own again
 }
+
+TEST_CASE("today keeps subtasks closed until shown") {
+    auto o = options_with_tasks();
+    std::vector<std::string> ticked;
+    o.load_tasks = [] {
+        auto tasks = three_tasks();
+        tasks[0].subtasks = {{"s1", "Collect receipts", false}, {"s2", "Fill in form", false}};
+        return tasks;
+    };
+    o.task_callbacks.on_toggle_subtask = [&](const std::string&, const std::string& sub) {
+        ticked.push_back(sub);
+    };
+    auto home = make_home(o);
+    CHECK_FALSE(contains(render(home, 80, 30), "Collect receipts"));
+    for (int i = 0; i < 3; ++i) // menu -> last task -> ... -> Pay taxes
+        home->OnEvent(ftxui::Event::ArrowUp);
+    home->OnEvent(ftxui::Event::Return);    // popup
+    home->OnEvent(ftxui::Event::ArrowDown); // Show subtasks
+    home->OnEvent(ftxui::Event::Return);
+    CHECK(contains(render(home, 80, 30), "Collect receipts"));
+    home->OnEvent(ftxui::Event::ArrowDown); // Collect receipts
+    home->OnEvent(ftxui::Event::Return);
+    CHECK(ticked == std::vector<std::string>{"s1"});
+}

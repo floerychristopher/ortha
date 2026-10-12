@@ -211,6 +211,16 @@ TaskListCallbacks App::task_callbacks(std::function<void()> back) {
                     service_.complete(id, today());
             },
         .on_delete = [this](const std::string& id) { repo_.remove(id); },
+        .on_toggle_subtask =
+            [this](const std::string& task_id, const std::string& subtask_id) {
+                auto task = repo_.find(task_id);
+                if (!task)
+                    return;
+                for (auto& subtask : task->subtasks)
+                    if (subtask.id == subtask_id)
+                        subtask.done = !subtask.done;
+                repo_.update(*task);
+            },
     };
 }
 

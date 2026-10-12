@@ -269,3 +269,91 @@ TEST_CASE("show done reloads the list with done tasks") {
     CHECK(contains(render(list), "Show done: off"));
     CHECK_FALSE(requested.back());
 }
+
+namespace {
+
+// A task with subtasks whose state changes like with the real database.
+struct Moving {
+    Task task = [] {
+        auto t = make_task("Move");
+        t.id = "move";
+        t.notes = "Keys go to the landlord";
+        t.subtasks = {{"pack", "Pack boxes", true}, {"van", "Rent van", false},
+                      {"mail", "Change address", false}};
+        return t;
+    }();
+    std::vector<std::pair<std::string, std::string>> toggled;
+
+    std::vector<Task> load() const {
+        auto other = make_task("Buy milk");
+        other.id = "milk";
+        return {task, other};
+    }
+    TaskListCallbacks callbacks() {
+        return {.on_toggle_subtask = [this](const std::string& task_id, const std::string& sub) {
+            toggled.emplace_back(task_id, sub);
+            for (auto& s : task.subtasks)
+                if (s.id == sub)
+                    s.done = !s.done;
+        }};
+    }
+};
+
+} // namespace
+
+TEST_CASE("all tasks shows subtasks below their task, then the notes") {
+    Moving m;
+    auto list = make_task_list("All tasks", [&](bool) { return m.load(); },
+                               Date{2026y, October, 7d}, m.callbacks());
+    auto out = render(list, 80, 20);
+    CHECK(contains(line_with(out, "Pack boxes"), "[x]"));
+    CHECK(contains(line_with(out, "Rent van"), "[ ]"));
+    CHECK(out.find("Move") < out.find("Pack boxes"));
+    CHECK(out.find("Change address") < out.find("Keys go to the landlord"));
+    CHECK(out.find("Keys go to the landlord") < out.find("Buy milk"));
+}
+
+TEST_CASE("enter on a subtask ticks it and the selection stays") {
+    Moving m;
+    auto list = make_task_list("All tasks", [&](bool) { return m.load(); },
+                               Date{2026y, October, 7d}, m.callbacks());
+    list->OnEvent(ftxui::Event::ArrowDown); // Pack boxes
+    list->OnEvent(ftxui::Event::ArrowDown); // Rent van
+    list->OnEvent(ftxui::Event::Return);    // no popup: ticks it
+    REQUIRE(m.toggled.size() == 1);
+    CHECK(m.toggled[0] == std::pair<std::string, std::string>{"move", "van"});
+    auto out = render(list, 80, 20);
+    CHECK(contains(line_with(out, "Rent van"), "[x]"));
+    CHECK(contains(line_with(out, "Move"), "2/3"));
+    CHECK_FALSE(contains(out, "Toggle done"));
+    list->OnEvent(ftxui::Event::Return); // still on Rent van: unticks it
+    CHECK(m.toggled.back() == std::pair<std::string, std::string>{"move", "van"});
+    CHECK(contains(line_with(render(list, 80, 20), "Rent van"), "[ ]"));
+}
+
+TEST_CASE("the popup can hide and show subtasks") {
+    Moving m;
+    auto list = make_task_list("All tasks", [&](bool) { return m.load(); },
+                               Date{2026y, October, 7d}, m.callbacks());
+    list->OnEvent(ftxui::Event::Return); // popup on "Move"
+    auto out = render(list, 80, 20);
+    for (auto text : {"Toggle done", "Hide subtasks", "Edit", "Delete", "Cancel"}) {
+        INFO(text);
+        CHECK(contains(out, text));
+    }
+    list->OnEvent(ftxui::Event::ArrowDown); // Hide subtasks
+    list->OnEvent(ftxui::Event::Return);
+    out = render(list, 80, 20);
+    CHECK_FALSE(contains(out, "Rent van"));
+    CHECK(contains(out, "Keys go to the landlord")); // the notes stay
+    list->OnEvent(ftxui::Event::Return);
+    CHECK(contains(render(list, 80, 20), "Show subtasks"));
+}
+
+TEST_CASE("tasks without subtasks keep the short popup") {
+    auto list = single_task_list(buy_milk(), {});
+    list->OnEvent(ftxui::Event::Return);
+    auto out = render(list);
+    CHECK_FALSE(contains(out, "subtasks"));
+    CHECK(contains(out, "Toggle done"));
+}
